@@ -25,6 +25,7 @@ import EventRegistrationForm from "@/components/EventRegistrationForm";
 import {
   Dialog,
   DialogContent,
+  DialogOverlay,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -85,30 +86,13 @@ const EventDetail = () => {
     setShowRegistrationForm(false);
   };
 
-  // Mobile drawer for registration form
-  const RegistrationDrawer = () => (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button className="w-full">Register Now</Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="h-[90vh] pt-10">
-        <EventRegistrationForm
-          eventName={event?.name || ""}
-          onSaveDraft={handleSaveDraft}
-          onProceedToPayment={handleProceedToPayment}
-          onCancel={() => setShowRegistrationForm(false)}
-        />
-      </SheetContent>
-    </Sheet>
-  );
-
-  // Desktop dialog for registration form
+  // Desktop dialog for registration form with full screen overlay
   const RegistrationDialog = () => (
     <Dialog>
       <DialogTrigger asChild>
         <Button className="w-full">Register Now</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-lg">
         <EventRegistrationForm 
           eventName={event?.name || ""}
           onSaveDraft={handleSaveDraft}
@@ -117,6 +101,25 @@ const EventDetail = () => {
         />
       </DialogContent>
     </Dialog>
+  );
+
+  // Mobile drawer for registration form
+  const RegistrationDrawer = () => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button className="w-full">Register Now</Button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90vh] pt-8 px-0 rounded-t-xl">
+        <div className="px-4">
+          <EventRegistrationForm
+            eventName={event?.name || ""}
+            onSaveDraft={handleSaveDraft}
+            onProceedToPayment={handleProceedToPayment}
+            onCancel={() => setShowRegistrationForm(false)}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 
   if (loading) {

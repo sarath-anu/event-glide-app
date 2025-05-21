@@ -15,6 +15,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,6 +32,14 @@ const formSchema = z.object({
   }),
   phone: z.string().min(10, {
     message: "Phone number must be at least 10 digits.",
+  }),
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"], {
+    message: "Please select a gender option.",
+  }),
+  attendeeCount: z.coerce.number().min(1, {
+    message: "At least 1 attendee is required.",
+  }).max(10, {
+    message: "Maximum 10 attendees allowed per registration.",
   }),
   address: z.string().optional(),
   specialRequirements: z.string().optional(),
@@ -57,6 +69,8 @@ const EventRegistrationForm = ({
       fullName: "",
       email: "",
       phone: "",
+      gender: "prefer_not_to_say",
+      attendeeCount: 1,
       address: "",
       specialRequirements: "",
       acceptTerms: false,
@@ -72,7 +86,7 @@ const EventRegistrationForm = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-white rounded-lg p-6">
       <h3 className="text-xl font-semibold mb-4">Register for {eventName}</h3>
       
       <Form {...form}>
@@ -115,6 +129,64 @@ const EventRegistrationForm = ({
                   <FormControl>
                     <Input type="tel" placeholder="Your phone number" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Gender</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="male" id="gender-male" />
+                        <Label htmlFor="gender-male">Male</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="female" id="gender-female" />
+                        <Label htmlFor="gender-female">Female</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="gender-other" />
+                        <Label htmlFor="gender-other">Other</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="prefer_not_to_say" id="gender-prefer-not" />
+                        <Label htmlFor="gender-prefer-not">Prefer not to say</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="attendeeCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Attendees</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="10" 
+                      placeholder="Number of people attending"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Enter the total number of people attending (including yourself)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
