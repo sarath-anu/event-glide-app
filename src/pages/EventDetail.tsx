@@ -20,12 +20,21 @@ import {
   Users,
   Check,
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import EventRegistrationForm from "@/components/EventRegistrationForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -56,6 +65,59 @@ const EventDetail = () => {
     if (registrationPercentage >= 50) return "medium-progress";
     return "low-progress";
   };
+
+  const handleSaveDraft = (data: any) => {
+    console.log("Saving draft:", data);
+    toast({
+      title: "Draft Saved",
+      description: "Your registration information has been saved as a draft.",
+    });
+    // In a real app, this would save to local storage or DB
+  };
+
+  const handleProceedToPayment = (data: any) => {
+    console.log("Proceeding to payment with data:", data);
+    toast({
+      title: "Registration Submitted",
+      description: "Proceeding to payment...",
+    });
+    // In a real app, this would redirect to payment page/gateway
+    setShowRegistrationForm(false);
+  };
+
+  // Mobile drawer for registration form
+  const RegistrationDrawer = () => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button className="w-full">Register Now</Button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90vh] pt-10">
+        <EventRegistrationForm
+          eventName={event?.name || ""}
+          onSaveDraft={handleSaveDraft}
+          onProceedToPayment={handleProceedToPayment}
+          onCancel={() => setShowRegistrationForm(false)}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+
+  // Desktop dialog for registration form
+  const RegistrationDialog = () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="w-full">Register Now</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <EventRegistrationForm 
+          eventName={event?.name || ""}
+          onSaveDraft={handleSaveDraft}
+          onProceedToPayment={handleProceedToPayment}
+          onCancel={() => setShowRegistrationForm(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
 
   if (loading) {
     return (
@@ -234,7 +296,9 @@ const EventDetail = () => {
                       Registration Full
                     </Button>
                   ) : isBookingOpen ? (
-                    <Button className="w-full">Register Now</Button>
+                    <div className="hidden md:block">
+                      <RegistrationDialog />
+                    </div>
                   ) : (
                     <div>
                       <Button disabled className="w-full mb-2">
@@ -247,6 +311,13 @@ const EventDetail = () => {
                           "MMMM do, yyyy"
                         )}
                       </p>
+                    </div>
+                  )}
+                  
+                  {/* Only show drawer on mobile */}
+                  {!isFull && isBookingOpen && (
+                    <div className="md:hidden">
+                      <RegistrationDrawer />
                     </div>
                   )}
                 </div>
