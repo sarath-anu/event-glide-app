@@ -22,7 +22,7 @@ const EventCard = ({ event }: EventCardProps) => {
   const formattedDate = format(new Date(event.eventDate), "MMM d, yyyy");
   
   return (
-    <Card className="event-card overflow-hidden">
+    <Card className="event-card group overflow-hidden">
       <div className="relative h-48 overflow-hidden">
         <img 
           src={event.imageUrl} 
