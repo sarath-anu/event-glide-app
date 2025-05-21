@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
   Mail,
   UserCircle,
   Users,
+  Check,
 } from "lucide-react";
 
 const EventDetail = () => {
@@ -125,6 +125,9 @@ const EventDetail = () => {
                 className={`h-4 w-4 mr-2 ${liked ? "fill-red-500" : ""}`}
               />
               {liked ? "Liked" : "Like"}
+              <div className="ml-1 flex items-center justify-center rounded-full bg-blue-100 p-1">
+                <Check className="h-3 w-3 text-blue-600" />
+              </div>
             </Button>
             <Button variant="outline" size="sm">
               <Share2 className="h-4 w-4 mr-2" />

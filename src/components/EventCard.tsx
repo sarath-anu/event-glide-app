@@ -2,7 +2,7 @@
 import { Event } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, MapPin, Heart, Star, Users } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Heart, Star, Users, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -78,6 +78,9 @@ const EventCard = ({ event }: EventCardProps) => {
         <div className="flex items-center gap-1">
           <Heart className="h-4 w-4 text-red-500" />
           <span className="text-sm">{event.likes}</span>
+          <div className="ml-1 flex items-center justify-center rounded-full bg-blue-100 p-1">
+            <Check className="h-3 w-3 text-blue-600" />
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
