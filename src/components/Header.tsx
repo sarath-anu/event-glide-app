@@ -37,6 +37,18 @@ const Header = () => {
             Events
           </Link>
           <Link 
+            to="/register" 
+            className={`header-nav-link ${isActive("/register") ? "active" : ""}`}
+          >
+            Register
+          </Link>
+          <Link 
+            to="/book" 
+            className={`header-nav-link ${isActive("/book") ? "active" : ""}`}
+          >
+            Book
+          </Link>
+          <Link 
             to="/about" 
             className={`header-nav-link ${isActive("/about") ? "active" : ""}`}
           >
@@ -115,6 +127,20 @@ const Header = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             Events
+          </Link>
+          <Link
+            to="/register"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Register
+          </Link>
+          <Link
+            to="/book"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Book
           </Link>
           <Link
             to="/about"
