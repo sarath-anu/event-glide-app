@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -299,8 +298,13 @@ const EventDetail = () => {
                       Registration Full
                     </Button>
                   ) : isBookingOpen ? (
-                    <div className="hidden md:block">
-                      <RegistrationDialog />
+                    <div className="space-y-2">
+                      <Link to={`/event/${id}/register`}>
+                        <Button className="w-full">Register</Button>
+                      </Link>
+                      <Link to={`/event/${id}/book`}>
+                        <Button variant="outline" className="w-full">Book Tickets</Button>
+                      </Link>
                     </div>
                   ) : (
                     <div>
@@ -314,13 +318,6 @@ const EventDetail = () => {
                           "MMMM do, yyyy"
                         )}
                       </p>
-                    </div>
-                  )}
-                  
-                  {/* Only show drawer on mobile */}
-                  {!isFull && isBookingOpen && (
-                    <div className="md:hidden">
-                      <RegistrationDrawer />
                     </div>
                   )}
                 </div>

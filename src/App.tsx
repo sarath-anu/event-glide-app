@@ -9,6 +9,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import EventListing from "./pages/EventListing";
 import EventDetail from "./pages/EventDetail";
+import EventRegistration from "./pages/EventRegistration";
+import EventBooking from "./pages/EventBooking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/events" element={<EventListing />} />
           <Route path="/event/:id" element={<EventDetail />} />
+          <Route path="/event/:id/register" element={<EventRegistration />} />
+          <Route path="/event/:id/book" element={<EventBooking />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<UserDashboard />} />
