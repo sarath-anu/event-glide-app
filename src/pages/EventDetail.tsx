@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ const EventDetail = () => {
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-lg">
         <EventRegistrationForm 
           eventName={event?.name || ""}
+          eventCategory={event?.category || "conference"}
           onSaveDraft={handleSaveDraft}
           onProceedToPayment={handleProceedToPayment}
           onCancel={() => setShowRegistrationForm(false)}
@@ -112,6 +114,7 @@ const EventDetail = () => {
         <div className="px-4">
           <EventRegistrationForm
             eventName={event?.name || ""}
+            eventCategory={event?.category || "conference"}
             onSaveDraft={handleSaveDraft}
             onProceedToPayment={handleProceedToPayment}
             onCancel={() => setShowRegistrationForm(false)}

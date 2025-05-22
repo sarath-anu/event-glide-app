@@ -41,7 +41,8 @@ import {
   MessageSquare, 
   Check, 
   Save, 
-  Send 
+  Send,
+  Clock
 } from "lucide-react";
 
 const TIME_SLOTS = [
