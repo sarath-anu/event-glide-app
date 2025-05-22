@@ -1,35 +1,37 @@
 
-import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { getEventById, Event } from "@/lib/data";
-import { toast } from "@/hooks/use-toast";
-import { Check, CalendarDays, Clock, MapPin, Users } from "lucide-react";
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getEventById, Event } from "@/lib/data";
+import { toast } from "@/hooks/use-toast";
+import { CalendarDays, Clock, MapPin, CreditCard, Users } from "lucide-react";
+import { format } from "date-fns";
+
+const ticketTypes = [
+  { id: "standard", name: "Standard", price: 50 },
+  { id: "vip", name: "VIP", price: 120 },
+  { id: "group", name: "Group (5+)", price: 40 },
+];
 
 const EventBooking = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ticketCount, setTicketCount] = useState(1);
-  const [bookingComplete, setBookingComplete] = useState(false);
+  const [ticketType, setTicketType] = useState("standard");
+  const [quantity, setQuantity] = useState(1);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -40,27 +42,28 @@ const EventBooking = () => {
     }
   }, [id]);
 
-  const handleTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const count = parseInt(e.target.value);
-    if (!isNaN(count) && count >= 1 && count <= 10) {
-      setTicketCount(count);
-    }
-  };
+  // Get the selected ticket type details
+  const selectedTicketType = ticketTypes.find(t => t.id === ticketType);
+  
+  // Calculate the total price
+  const ticketPrice = selectedTicketType?.price || 0;
+  const total = ticketPrice * quantity;
 
-  const calculateTotal = () => {
-    if (!event) return 0;
-    return (event.price || 0) * ticketCount;
-  };
-
-  const handleBookNow = () => {
-    // In a real app, this would submit booking details to backend
-    setTimeout(() => {
-      setBookingComplete(true);
+  const handleBooking = () => {
+    if (!agreeToTerms) {
       toast({
-        title: "Booking Successful",
-        description: `You have successfully booked ${ticketCount} ticket(s) for ${event?.name}`,
+        title: "Error",
+        description: "You must agree to the terms and conditions.",
+        variant: "destructive",
       });
-    }, 1000);
+      return;
+    }
+
+    console.log("Booking with:", { ticketType, quantity, total });
+    toast({
+      title: "Booking Successful",
+      description: "Your tickets have been booked successfully!",
+    });
   };
 
   if (loading) {
@@ -94,49 +97,6 @@ const EventBooking = () => {
     );
   }
 
-  if (bookingComplete) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="container py-12 max-w-md mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto my-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                <Check className="h-10 w-10 text-green-600" />
-              </div>
-              <CardTitle className="text-2xl">Booking Confirmed!</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-center">
-              <p>You have successfully booked {ticketCount} ticket(s) for:</p>
-              <h3 className="text-xl font-medium">{event.name}</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-center text-sm">
-                  <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{format(new Date(event.eventDate), "EEEE, MMMM do, yyyy")}</span>
-                </div>
-                <div className="flex items-center justify-center text-sm">
-                  <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{event.eventTime}</span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground mt-6">
-                A confirmation email with details and e-tickets has been sent to your email address.
-              </p>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-2">
-              <Button className="w-full" onClick={() => navigate(`/event/${id}`)}>
-                Back to Event
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/events")}>
-                Browse More Events
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -153,86 +113,131 @@ const EventBooking = () => {
           <div className="md:col-span-2">
             <h1 className="text-3xl font-bold mb-6">Book Tickets</h1>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Ticket Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="ticketCount">Number of Tickets</Label>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => ticketCount > 1 && setTicketCount(ticketCount - 1)}
-                      disabled={ticketCount <= 1}
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="ticket-type">Ticket Type</Label>
+                    <Select 
+                      value={ticketType} 
+                      onValueChange={setTicketType}
                     >
-                      -
-                    </Button>
-                    <Input 
-                      id="ticketCount" 
-                      className="w-20 text-center" 
-                      type="number" 
-                      min="1" 
-                      max="10" 
-                      value={ticketCount} 
-                      onChange={handleTicketChange} 
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => ticketCount < 10 && setTicketCount(ticketCount + 1)}
-                      disabled={ticketCount >= 10}
-                    >
-                      +
-                    </Button>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      (max 10 tickets per booking)
-                    </span>
+                      <SelectTrigger id="ticket-type" className="w-full">
+                        <SelectValue placeholder="Select ticket type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ticketTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.name} - ${type.price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="font-medium mb-2">Price Summary</h3>
-                  <div className="bg-muted p-4 rounded-md space-y-2">
-                    <div className="flex justify-between">
-                      <span>Ticket price</span>
-                      <span>${event.price?.toFixed(2) || "Free"}</span>
+                  <div>
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <div className="flex items-center">
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                      >
+                        -
+                      </Button>
+                      <Input 
+                        id="quantity" 
+                        type="number" 
+                        className="mx-2 text-center w-20" 
+                        min={1} 
+                        max={10}
+                        value={quantity}
+                        onChange={(e) => setQuantity(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                        disabled={quantity >= 10}
+                      >
+                        +
+                      </Button>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Number of tickets</span>
-                      <span>x {ticketCount}</span>
+                  </div>
+
+                  <div className="border-t pt-4 mt-6">
+                    <div className="flex justify-between mb-2">
+                      <span>Ticket Price:</span>
+                      <span>${ticketPrice.toFixed(2)}</span>
                     </div>
-                    <div className="border-t pt-2 mt-2 flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                    <div className="flex justify-between mb-2">
+                      <span>Quantity:</span>
+                      <span>x{quantity}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg mt-2">
+                      <span>Total:</span>
+                      <span>${total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="w-full">Proceed to Checkout</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirm Your Booking</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You are about to book {ticketCount} ticket(s) for {event.name} for a total of ${calculateTotal().toFixed(2)}. 
-                        Would you like to proceed?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleBookNow}>
-                        Yes, Book Now
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
             </Card>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Payment Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="card-name">Name on Card</Label>
+                    <Input id="card-name" placeholder="Enter the name on your card" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="card-number">Card Number</Label>
+                    <div className="relative">
+                      <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input id="card-number" className="pl-10" placeholder="1234 5678 9012 3456" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="expiry">Expiry Date</Label>
+                      <Input id="expiry" placeholder="MM/YY" />
+                    </div>
+                    <div>
+                      <Label htmlFor="cvv">CVV</Label>
+                      <Input id="cvv" placeholder="123" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 pt-4">
+                    <Checkbox 
+                      id="terms" 
+                      checked={agreeToTerms} 
+                      onCheckedChange={(checked) => setAgreeToTerms(checked === true)} 
+                    />
+                    <label
+                      htmlFor="terms"
+                      className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      I agree to the terms and conditions and cancellation policy
+                    </label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button onClick={handleBooking} disabled={!agreeToTerms}>
+                Complete Booking
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -265,7 +270,7 @@ const EventBooking = () => {
                     <div className="flex items-center text-sm">
                       <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span>
-                        {event.registeredCount}/{event.totalOccupancy} registered
+                        {event.registeredCount} / {event.totalOccupancy} registered
                       </span>
                     </div>
                   </div>

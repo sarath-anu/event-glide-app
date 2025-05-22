@@ -91,6 +91,7 @@ const EventRegistration = () => {
             <h1 className="text-3xl font-bold mb-6">Register for Event</h1>
             <EventRegistrationForm
               eventName={event.name}
+              eventCategory={event.category}
               onSaveDraft={handleSaveDraft}
               onProceedToPayment={handleProceedToPayment}
               onCancel={() => window.history.back()}
