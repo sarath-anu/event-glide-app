@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, User, Calendar } from "lucide-react";
+import { SearchIcon, User, Calendar, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 const Header = () => {
@@ -47,6 +47,12 @@ const Header = () => {
             className={`header-nav-link ${isActive("/book") ? "active" : ""}`}
           >
             Book
+          </Link>
+          <Link 
+            to="/chat" 
+            className={`header-nav-link ${isActive("/chat") ? "active" : ""}`}
+          >
+            Community Chat
           </Link>
           <Link 
             to="/about" 
@@ -141,6 +147,13 @@ const Header = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             Book
+          </Link>
+          <Link
+            to="/chat"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Community Chat
           </Link>
           <Link
             to="/about"
