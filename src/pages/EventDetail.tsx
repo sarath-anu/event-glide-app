@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
-import { getEventById, Event } from "@/lib/data";
+import { getEventById, Event, EventCategory } from "@/lib/data";
 import { format } from "date-fns";
 import {
   CalendarDays,
@@ -25,7 +24,6 @@ import EventRegistrationForm from "@/components/EventRegistrationForm";
 import {
   Dialog,
   DialogContent,
-  DialogOverlay,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -95,7 +93,7 @@ const EventDetail = () => {
       <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-lg">
         <EventRegistrationForm 
           eventName={event?.name || ""}
-          eventCategory={event?.category || "conference"}
+          eventCategory={event?.category || "other" as EventCategory}
           onSaveDraft={handleSaveDraft}
           onProceedToPayment={handleProceedToPayment}
           onCancel={() => setShowRegistrationForm(false)}
@@ -114,7 +112,7 @@ const EventDetail = () => {
         <div className="px-4">
           <EventRegistrationForm
             eventName={event?.name || ""}
-            eventCategory={event?.category || "conference"}
+            eventCategory={event?.category || "other" as EventCategory}
             onSaveDraft={handleSaveDraft}
             onProceedToPayment={handleProceedToPayment}
             onCancel={() => setShowRegistrationForm(false)}
