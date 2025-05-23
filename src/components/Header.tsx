@@ -3,10 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchIcon, User, Calendar, MessageSquare } from "lucide-react";
 import { useState } from "react";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -28,53 +31,55 @@ const Header = () => {
             to="/" 
             className={`header-nav-link ${isActive("/") ? "active" : ""}`}
           >
-            Home
+            {t('home')}
           </Link>
           <Link 
             to="/events" 
             className={`header-nav-link ${isActive("/events") ? "active" : ""}`}
           >
-            Events
+            {t('events')}
           </Link>
           <Link 
             to="/register" 
             className={`header-nav-link ${isActive("/register") ? "active" : ""}`}
           >
-            Register
+            {t('register')}
           </Link>
           <Link 
             to="/book" 
             className={`header-nav-link ${isActive("/book") ? "active" : ""}`}
           >
-            Book
+            {t('book')}
           </Link>
           <Link 
             to="/chat" 
             className={`header-nav-link ${isActive("/chat") ? "active" : ""}`}
           >
-            Community Chat
+            {t('communityChat')}
           </Link>
           <Link 
             to="/about" 
             className={`header-nav-link ${isActive("/about") ? "active" : ""}`}
           >
-            About
+            {t('about')}
           </Link>
           <Link 
             to="/contact" 
             className={`header-nav-link ${isActive("/contact") ? "active" : ""}`}
           >
-            Contact
+            {t('contact')}
           </Link>
         </nav>
 
         <div className="flex items-center gap-4">
+          <LanguageSelector />
+          
           <div className="hidden md:flex">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/login">Log in</Link>
+              <Link to="/login">{t('login')}</Link>
             </Button>
             <Button size="sm" className="ml-2" asChild>
-              <Link to="/register">Sign up</Link>
+              <Link to="/register">{t('signup')}</Link>
             </Button>
           </div>
 
@@ -125,61 +130,64 @@ const Header = () => {
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Home
+            {t('home')}
           </Link>
           <Link
             to="/events"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Events
+            {t('events')}
           </Link>
           <Link
             to="/register"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Register
+            {t('register')}
           </Link>
           <Link
             to="/book"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Book
+            {t('book')}
           </Link>
           <Link
             to="/chat"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Community Chat
+            {t('communityChat')}
           </Link>
           <Link
             to="/about"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            About
+            {t('about')}
           </Link>
           <Link
             to="/contact"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
             onClick={() => setIsMenuOpen(false)}
           >
-            Contact
+            {t('contact')}
           </Link>
           <div className="mt-4 flex flex-col space-y-2">
             <Button variant="outline" size="sm" className="justify-center" asChild>
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                Log in
+                {t('login')}
               </Link>
             </Button>
             <Button size="sm" className="justify-center" asChild>
               <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                Sign up
+                {t('signup')}
               </Link>
             </Button>
+          </div>
+          <div className="mt-4">
+            <LanguageSelector />
           </div>
         </div>
       )}
