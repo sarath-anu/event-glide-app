@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { LanguageProvider } from "@/hooks/useLanguage";
 
 // Pages
 import Index from "./pages/Index";
@@ -22,28 +21,26 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/events" element={<EventListing />} />
-            <Route path="/event/:id" element={<EventDetail />} />
-            <Route path="/event/:id/register" element={<EventRegistration />} />
-            <Route path="/event/:id/book" element={<EventBooking />} />
-            <Route path="/register" element={<Navigate to="/events" />} />
-            <Route path="/book" element={<Navigate to="/events" />} />
-            <Route path="/chat" element={<CommunityChat />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<UserDashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/events" element={<EventListing />} />
+          <Route path="/event/:id" element={<EventDetail />} />
+          <Route path="/event/:id/register" element={<EventRegistration />} />
+          <Route path="/event/:id/book" element={<EventBooking />} />
+          <Route path="/register" element={<Navigate to="/events" />} />
+          <Route path="/book" element={<Navigate to="/events" />} />
+          <Route path="/chat" element={<CommunityChat />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

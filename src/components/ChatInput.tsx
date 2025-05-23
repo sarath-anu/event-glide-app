@@ -3,7 +3,6 @@ import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendHorizontal } from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -12,7 +11,6 @@ interface ChatInputProps {
 export const ChatInput = ({ onSendMessage }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLanguage();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +32,7 @@ export const ChatInput = ({ onSendMessage }: ChatInputProps) => {
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder={t('typeMessage')}
+        placeholder="Type a message..."
         className="resize-none min-h-[80px]"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
@@ -50,7 +48,7 @@ export const ChatInput = ({ onSendMessage }: ChatInputProps) => {
         className="mb-1"
       >
         <SendHorizontal className="h-4 w-4" />
-        <span className="sr-only">{t('send')}</span>
+        <span className="sr-only">Send message</span>
       </Button>
     </form>
   );

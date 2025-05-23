@@ -3,20 +3,17 @@ import { useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Message } from "@/pages/CommunityChat";
 import { format } from "date-fns";
-import { useLanguage } from "@/hooks/useLanguage";
 
 interface ChatMessagesProps {
   messages: Message[];
 }
 
 export const ChatMessages = ({ messages }: ChatMessagesProps) => {
-  const { t } = useLanguage();
-  
   return (
     <div className="space-y-4">
       {messages.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          {t('noMessages')}
+          No messages yet. Start the conversation!
         </div>
       ) : (
         messages.map((message) => (
