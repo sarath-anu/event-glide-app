@@ -37,7 +37,7 @@ const AdminDashboard = () => {
       const event = pendingEvents.find(e => e.id === eventId);
       if (event) {
         setPendingEvents(prev => prev.filter(e => e.id !== eventId));
-        setRejectedEvents(prev => [...prev, { ...event, status: 'rejected' as const, rejectedReason }]);
+        setRejectedEvents(prev => [...prev, { ...event, status: 'rejected' as const, rejectedReason: rejectionReason }]);
       }
       setIsRejectDialogOpen(false);
       setRejectionReason("");
