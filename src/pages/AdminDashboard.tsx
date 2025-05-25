@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Calendar, Clock, MapPin, Users, Eye, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Eye, CheckCircle, XCircle, AlertCircle, Plus, Image } from "lucide-react";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,7 +23,8 @@ const eventFormSchema = z.object({
   eventTime: z.string().min(1, "Event time is required"),
   description: z.string().min(1, "Event description is required"),
   totalOccupancy: z.number().min(1, "Available seats must be at least 1"),
-  category: z.enum(['sports', 'college', 'entertainment', 'circus', 'theater', 'music', 'other'])
+  category: z.enum(['sports', 'college', 'entertainment', 'circus', 'theater', 'music', 'other']),
+  eventImage: z.any().optional()
 });
 
 type EventFormData = z.infer<typeof eventFormSchema>;
@@ -36,6 +37,7 @@ const AdminDashboard = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
@@ -49,6 +51,18 @@ const AdminDashboard = () => {
       category: "other"
     }
   });
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue("eventImage", file);
+    }
+  };
 
   const handleApprove = (eventId: string) => {
     if (approveEvent(eventId)) {
@@ -76,6 +90,12 @@ const AdminDashboard = () => {
   };
 
   const handleCreateEvent = (data: EventFormData) => {
+    // Create image URL from uploaded file or use default
+    let imageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop";
+    if (data.eventImage && imagePreview) {
+      imageUrl = imagePreview;
+    }
+
     const newEvent: Event = {
       id: (events.length + 1).toString(),
       name: data.name,
@@ -98,7 +118,7 @@ const AdminDashboard = () => {
       shortDescription: data.description.substring(0, 100) + "...",
       organizer: "Admin",
       tags: [data.category],
-      imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
+      imageUrl: imageUrl,
       status: 'pending',
       submittedDate: new Date().toISOString()
     };
@@ -106,6 +126,7 @@ const AdminDashboard = () => {
     events.push(newEvent);
     setPendingEvents(prev => [...prev, newEvent]);
     setIsCreateEventOpen(false);
+    setImagePreview("");
     form.reset();
   };
 
@@ -311,6 +332,57 @@ const AdminDashboard = () => {
                             <option value="music">Music</option>
                             <option value="other">Other</option>
                           </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="eventImage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Image</FormLabel>
+                        <FormControl>
+                          <div className="space-y-2">
+                            <Input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              className="cursor-pointer"
+                            />
+                            {imagePreview && (
+                              <div className="relative w-full h-32 border rounded-lg overflow-hidden">
+                                <img 
+                                  src={imagePreview} 
+                                  alt="Event preview" 
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-2 right-2">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      setImagePreview("");
+                                      form.setValue("eventImage", undefined);
+                                    }}
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            {!imagePreview && (
+                              <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg">
+                                <div className="text-center">
+                                  <Image className="mx-auto h-8 w-8 text-gray-400" />
+                                  <p className="mt-2 text-sm text-gray-500">Upload event image</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
