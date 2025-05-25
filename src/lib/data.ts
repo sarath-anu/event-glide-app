@@ -1,5 +1,6 @@
-
 export type EventCategory = 'sports' | 'college' | 'entertainment' | 'circus' | 'theater' | 'music' | 'other';
+
+export type EventStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Event {
   id: string;
@@ -29,6 +30,10 @@ export interface Event {
   organizer: string;
   tags: string[];
   imageUrl: string;
+  status: EventStatus;
+  submittedDate: string;
+  approvedDate?: string;
+  rejectedReason?: string;
 }
 
 export const events: Event[] = [
@@ -60,6 +65,9 @@ export const events: Event[] = [
     organizer: "Boston University Athletics",
     tags: ["Basketball", "Tournament", "College Sports", "Competition"],
     imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=2090&auto=format&fit=crop",
+    status: "approved",
+    submittedDate: "2023-05-01T00:00:00Z",
+    approvedDate: "2023-05-02T00:00:00Z",
   },
   {
     id: "2",
@@ -89,6 +97,9 @@ export const events: Event[] = [
     organizer: "Entertainment Global Productions",
     tags: ["Circus", "Acrobatics", "Performance", "Arts", "Family"],
     imageUrl: "https://images.unsplash.com/photo-1572380301528-12f385290fb2?q=80&w=2069&auto=format&fit=crop",
+    status: "approved",
+    submittedDate: "2023-04-15T00:00:00Z",
+    approvedDate: "2023-04-16T00:00:00Z",
   },
   {
     id: "3",
@@ -117,6 +128,8 @@ export const events: Event[] = [
     organizer: "Tech Institute of Innovation",
     tags: ["Technology", "Conference", "Innovation", "Networking", "Education"],
     imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
+    status: "pending",
+    submittedDate: "2023-05-20T00:00:00Z",
   },
   {
     id: "4",
@@ -146,6 +159,9 @@ export const events: Event[] = [
     organizer: "Melody Productions",
     tags: ["Music", "Festival", "Concert", "Outdoor", "Entertainment"],
     imageUrl: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=2070&auto=format&fit=crop",
+    status: "approved",
+    submittedDate: "2023-03-01T00:00:00Z",
+    approvedDate: "2023-03-02T00:00:00Z",
   },
   {
     id: "5",
@@ -175,6 +191,9 @@ export const events: Event[] = [
     organizer: "Classical Theater Company",
     tags: ["Theater", "Shakespeare", "Outdoor", "Arts", "Culture"],
     imageUrl: "https://images.unsplash.com/photo-1561310728-93765f0ea516?q=80&w=2070&auto=format&fit=crop",
+    status: "approved",
+    submittedDate: "2023-05-05T00:00:00Z",
+    approvedDate: "2023-05-06T00:00:00Z",
   },
   {
     id: "6",
@@ -204,6 +223,8 @@ export const events: Event[] = [
     organizer: "Comic Entertainment Group",
     tags: ["Comics", "Pop Culture", "Cosplay", "Entertainment", "Convention"],
     imageUrl: "https://images.unsplash.com/photo-1612036782180-6f0822045d55?q=80&w=2070&auto=format&fit=crop",
+    status: "pending",
+    submittedDate: "2023-01-25T00:00:00Z",
   },
   {
     id: "7",
@@ -232,6 +253,9 @@ export const events: Event[] = [
     organizer: "University Tech Department",
     tags: ["Hackathon", "Coding", "Technology", "Competition", "Innovation"],
     imageUrl: "https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?q=80&w=2070&auto=format&fit=crop",
+    status: "approved",
+    submittedDate: "2023-04-20T00:00:00Z",
+    approvedDate: "2023-04-21T00:00:00Z",
   },
   {
     id: "8",
@@ -261,6 +285,9 @@ export const events: Event[] = [
     organizer: "Community Health Foundation",
     tags: ["Marathon", "Running", "Charity", "Fitness", "Fundraising"],
     imageUrl: "https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=2070&auto=format&fit=crop",
+    status: "rejected",
+    submittedDate: "2023-02-25T00:00:00Z",
+    rejectedReason: "Missing required permits and documentation.",
   }
 ];
 
@@ -269,26 +296,58 @@ export const getEventById = (id: string): Event | undefined => {
 };
 
 export const getEventsByCategory = (category: EventCategory): Event[] => {
-  return events.filter(event => event.category === category);
+  return events.filter(event => event.category === category && event.status === 'approved');
 };
 
 export const getFeaturedEvents = (): Event[] => {
-  // In a real app, this might use criteria like high ratings, upcoming dates, or editorial selection
-  return events.slice(0, 4);
+  return events.filter(event => event.status === 'approved').slice(0, 4);
 };
 
 export const getTrendingEvents = (): Event[] => {
-  // In a real app, this might be based on recent registrations, views, or likes
-  return [...events].sort((a, b) => b.likes - a.likes).slice(0, 4);
+  return [...events].filter(event => event.status === 'approved').sort((a, b) => b.likes - a.likes).slice(0, 4);
 };
 
 export const searchEvents = (query: string): Event[] => {
   const lowercaseQuery = query.toLowerCase();
   return events.filter(
     event => 
-      event.name.toLowerCase().includes(lowercaseQuery) || 
+      event.status === 'approved' &&
+      (event.name.toLowerCase().includes(lowercaseQuery) || 
       event.location.city.toLowerCase().includes(lowercaseQuery) || 
       event.category.toLowerCase().includes(lowercaseQuery) ||
-      event.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
+      event.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery)))
   );
+};
+
+export const getPendingEvents = (): Event[] => {
+  return events.filter(event => event.status === 'pending');
+};
+
+export const getApprovedEvents = (): Event[] => {
+  return events.filter(event => event.status === 'approved');
+};
+
+export const getRejectedEvents = (): Event[] => {
+  return events.filter(event => event.status === 'rejected');
+};
+
+// Admin functions to update event status
+export const approveEvent = (eventId: string): boolean => {
+  const eventIndex = events.findIndex(event => event.id === eventId);
+  if (eventIndex !== -1) {
+    events[eventIndex].status = 'approved';
+    events[eventIndex].approvedDate = new Date().toISOString();
+    return true;
+  }
+  return false;
+};
+
+export const rejectEvent = (eventId: string, reason: string): boolean => {
+  const eventIndex = events.findIndex(event => event.id === eventId);
+  if (eventIndex !== -1) {
+    events[eventIndex].status = 'rejected';
+    events[eventIndex].rejectedReason = reason;
+    return true;
+  }
+  return false;
 };

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import Header from "@/components/Header";
-import { events, EventCategory } from "@/lib/data";
+import { getApprovedEvents, EventCategory } from "@/lib/data";
 import EventCard from "@/components/EventCard";
 import CategoryFilter from "@/components/CategoryFilter";
 import SearchBar from "@/components/SearchBar";
@@ -27,6 +27,9 @@ const EventListing = () => {
   const [sortOption, setSortOption] = useState<SortOption>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   
+  // Only get approved events
+  const approvedEvents = getApprovedEvents();
+  
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -40,7 +43,7 @@ const EventListing = () => {
   };
   
   // Filter events based on search query and category
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = approvedEvents.filter(event => {
     const matchesSearch = searchQuery === "" || 
       event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.location.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
