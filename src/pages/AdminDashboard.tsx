@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { getPendingEvents, getApprovedEvents, getRejectedEvents, approveEvent, rejectEvent, Event } from "@/lib/data";
+import { getPendingEvents, getApprovedEvents, getRejectedEvents, approveEvent, rejectEvent, Event, EventCategory, events } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +8,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, MapPin, Users, Eye, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Calendar, Clock, MapPin, Users, Eye, CheckCircle, XCircle, AlertCircle, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const eventFormSchema = z.object({
+  name: z.string().min(1, "Event name is required"),
+  location: z.string().min(1, "Event location is required"),
+  eventDate: z.string().min(1, "Event date is required"),
+  eventTime: z.string().min(1, "Event time is required"),
+  description: z.string().min(1, "Event description is required"),
+  totalOccupancy: z.number().min(1, "Available seats must be at least 1"),
+  category: z.enum(['sports', 'college', 'entertainment', 'circus', 'theater', 'music', 'other'])
+});
+
+type EventFormData = z.infer<typeof eventFormSchema>;
 
 const AdminDashboard = () => {
   const [pendingEvents, setPendingEvents] = useState(getPendingEvents());
@@ -19,6 +35,20 @@ const AdminDashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
+
+  const form = useForm<EventFormData>({
+    resolver: zodResolver(eventFormSchema),
+    defaultValues: {
+      name: "",
+      location: "",
+      eventDate: "",
+      eventTime: "",
+      description: "",
+      totalOccupancy: 0,
+      category: "other"
+    }
+  });
 
   const handleApprove = (eventId: string) => {
     if (approveEvent(eventId)) {
@@ -43,6 +73,40 @@ const AdminDashboard = () => {
       setRejectionReason("");
       setSelectedEvent(null);
     }
+  };
+
+  const handleCreateEvent = (data: EventFormData) => {
+    const newEvent: Event = {
+      id: (events.length + 1).toString(),
+      name: data.name,
+      category: data.category,
+      location: {
+        city: data.location.split(',')[1]?.trim() || data.location,
+        venue: data.location.split(',')[0]?.trim() || data.location,
+      },
+      contactDetails: {
+        email: "admin@events.com"
+      },
+      totalOccupancy: data.totalOccupancy,
+      registeredCount: 0,
+      bookingOpeningDate: new Date().toISOString(),
+      eventDate: new Date(data.eventDate).toISOString(),
+      eventTime: data.eventTime,
+      likes: 0,
+      rating: 0,
+      description: data.description,
+      shortDescription: data.description.substring(0, 100) + "...",
+      organizer: "Admin",
+      tags: [data.category],
+      imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
+      status: 'pending',
+      submittedDate: new Date().toISOString()
+    };
+
+    events.push(newEvent);
+    setPendingEvents(prev => [...prev, newEvent]);
+    setIsCreateEventOpen(false);
+    form.reset();
   };
 
   const openRejectDialog = (event: Event) => {
@@ -132,9 +196,155 @@ const AdminDashboard = () => {
   return (
     <Layout>
       <div className="container py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage and review event submissions</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-heading font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage and review event submissions</p>
+          </div>
+          <Dialog open={isCreateEventOpen} onOpenChange={setIsCreateEventOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Event
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Event</DialogTitle>
+                <DialogDescription>Fill in the details to create a new event</DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleCreateEvent)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter event name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Venue, City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="eventDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="eventTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Time</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="totalOccupancy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Available Seats</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter number of seats" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Category</FormLabel>
+                        <FormControl>
+                          <select 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            {...field}
+                          >
+                            <option value="sports">Sports</option>
+                            <option value="college">College</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="circus">Circus</option>
+                            <option value="theater">Theater</option>
+                            <option value="music">Music</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter event description" 
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateEventOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Event</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
