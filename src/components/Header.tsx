@@ -3,13 +3,33 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchIcon, User, Calendar, MessageSquare, Shield } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
   
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -36,31 +56,29 @@ const Header = () => {
           >
             Events
           </Link>
-          <Link 
-            to="/register" 
-            className={`header-nav-link ${isActive("/register") ? "active" : ""}`}
-          >
-            Register
-          </Link>
-          <Link 
-            to="/book" 
-            className={`header-nav-link ${isActive("/book") ? "active" : ""}`}
-          >
-            Book
-          </Link>
-          <Link 
-            to="/chat" 
-            className={`header-nav-link ${isActive("/chat") ? "active" : ""}`}
-          >
-            Community Chat
-          </Link>
-          <Link 
-            to="/admin" 
-            className={`header-nav-link ${isActive("/admin") ? "active" : ""} flex items-center gap-1`}
-          >
-            <Shield className="h-4 w-4" />
-            Admin
-          </Link>
+          {user && (
+            <>
+              <Link 
+                to="/dashboard" 
+                className={`header-nav-link ${isActive("/dashboard") ? "active" : ""}`}
+              >
+                Dashboard
+              </Link>
+              <Link 
+                to="/chat" 
+                className={`header-nav-link ${isActive("/chat") ? "active" : ""}`}
+              >
+                Community Chat
+              </Link>
+              <Link 
+                to="/admin" 
+                className={`header-nav-link ${isActive("/admin") ? "active" : ""} flex items-center gap-1`}
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Link>
+            </>
+          )}
           <Link 
             to="/about" 
             className={`header-nav-link ${isActive("/about") ? "active" : ""}`}
@@ -76,13 +94,26 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">Log in</Link>
-            </Button>
-            <Button size="sm" className="ml-2" asChild>
-              <Link to="/register">Sign up</Link>
-            </Button>
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button size="sm" className="ml-2" asChild>
+                  <Link to="/register">Sign up</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -141,35 +172,32 @@ const Header = () => {
           >
             Events
           </Link>
-          <Link
-            to="/register"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Register
-          </Link>
-          <Link
-            to="/book"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Book
-          </Link>
-          <Link
-            to="/chat"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Community Chat
-          </Link>
-          <Link
-            to="/admin"
-            className="flex items-center gap-1 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <Shield className="h-4 w-4" />
-            Admin
-          </Link>
+          {user && (
+            <>
+              <Link
+                to="/dashboard"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/chat"
+                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Community Chat
+              </Link>
+              <Link
+                to="/admin"
+                className="flex items-center gap-1 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Link>
+            </>
+          )}
           <Link
             to="/about"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
@@ -185,16 +213,37 @@ const Header = () => {
             Contact
           </Link>
           <div className="mt-4 flex flex-col space-y-2">
-            <Button variant="outline" size="sm" className="justify-center" asChild>
-              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                Log in
-              </Link>
-            </Button>
-            <Button size="sm" className="justify-center" asChild>
-              <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                Sign up
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  {user.email}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="justify-center" 
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="justify-center" asChild>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    Log in
+                  </Link>
+                </Button>
+                <Button size="sm" className="justify-center" asChild>
+                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                    Sign up
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
