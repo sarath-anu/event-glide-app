@@ -1,16 +1,15 @@
 
 import { Badge } from "@/components/ui/badge";
-import { EventCategory } from "@/lib/data";
 import { MouseEvent } from "react";
 
 interface CategoryFilterProps {
   categories: {
-    id: EventCategory;
+    id: string;
     name: string;
     icon?: string;
   }[];
-  selectedCategory: EventCategory | null;
-  onSelectCategory: (category: EventCategory | null) => void;
+  selectedCategory: string | null;
+  onSelectCategory: (category: string | null) => void;
 }
 
 const CategoryFilter = ({
@@ -18,7 +17,7 @@ const CategoryFilter = ({
   selectedCategory,
   onSelectCategory,
 }: CategoryFilterProps) => {
-  const handleCategoryClick = (e: MouseEvent<HTMLButtonElement>, category: EventCategory | null) => {
+  const handleCategoryClick = (e: MouseEvent<HTMLButtonElement>, category: string | null) => {
     e.preventDefault();
     onSelectCategory(category);
   };

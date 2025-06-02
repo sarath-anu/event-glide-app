@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Filter, SortAsc, SortDesc } from "lucide-react";
 
 const categoryOptions = [
-  { id: "sports", name: "Sports" },
-  { id: "college", name: "College" },
-  { id: "entertainment", name: "Entertainment" },
-  { id: "circus", name: "Circus" },
-  { id: "theater", name: "Theater" },
-  { id: "music", name: "Music" },
-  { id: "other", name: "Other" }
+  { id: "sports" as const, name: "Sports" },
+  { id: "college" as const, name: "College" },
+  { id: "entertainment" as const, name: "Entertainment" },
+  { id: "circus" as const, name: "Circus" },
+  { id: "theater" as const, name: "Theater" },
+  { id: "music" as const, name: "Music" },
+  { id: "other" as const, name: "Other" }
 ];
 
 type SortOption = "date" | "name" | "popularity";

@@ -15,13 +15,13 @@ import {
 import EventCardSupabase from "@/components/EventCardSupabase";
 
 const categoryOptions = [
-  { id: "sports", name: "Sports" },
-  { id: "college", name: "College" },
-  { id: "entertainment", name: "Entertainment" },
-  { id: "circus", name: "Circus" },
-  { id: "theater", name: "Theater" },
-  { id: "music", name: "Music" },
-  { id: "other", name: "Other" }
+  { id: "sports" as const, name: "Sports" },
+  { id: "college" as const, name: "College" },
+  { id: "entertainment" as const, name: "Entertainment" },
+  { id: "circus" as const, name: "Circus" },
+  { id: "theater" as const, name: "Theater" },
+  { id: "music" as const, name: "Music" },
+  { id: "other" as const, name: "Other" }
 ];
 
 const IndexSupabase = () => {
@@ -83,14 +83,28 @@ const IndexSupabase = () => {
         {/* Featured Events */}
         {featuredEvents.length > 0 && (
           <section className="mb-12">
-            <EventCarousel title="Featured Events" events={featuredEvents} />
+            <div className="mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-4">Featured Events</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredEvents.map((event) => (
+                  <EventCardSupabase key={event.id} event={event} />
+                ))}
+              </div>
+            </div>
           </section>
         )}
         
         {/* Trending Events */}
         {trendingEvents.length > 0 && (
           <section className="mb-12">
-            <EventCarousel title="Trending Events" events={trendingEvents} />
+            <div className="mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-4">Trending Events</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trendingEvents.map((event) => (
+                  <EventCardSupabase key={event.id} event={event} />
+                ))}
+              </div>
+            </div>
           </section>
         )}
         
