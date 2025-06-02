@@ -20,9 +20,6 @@ interface Review {
   comment: string | null;
   created_at: string;
   user_id: string;
-  profiles?: {
-    full_name: string | null;
-  };
 }
 
 const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
@@ -203,9 +200,7 @@ const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
                   <div>
                     <div className="flex items-center mb-1">
                       {renderStars(review.rating)}
-                      <span className="ml-2 font-medium">
-                        {review.profiles?.full_name || "Anonymous User"}
-                      </span>
+                      <span className="ml-2 font-medium">Anonymous User</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(review.created_at), "MMM dd, yyyy")}

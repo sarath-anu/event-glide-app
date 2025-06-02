@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
@@ -277,10 +276,7 @@ export const updateEventReview = async (reviewId: string, reviewData: Partial<Ev
 export const getEventReviews = async (eventId: string) => {
   const { data, error } = await supabase
     .from('event_reviews')
-    .select(`
-      *,
-      profiles (full_name)
-    `)
+    .select('*')
     .eq('event_id', eventId)
     .order('created_at', { ascending: false });
   

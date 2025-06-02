@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
@@ -25,9 +25,16 @@ const user = {
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState("events");
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Get current user
-  const { data: { user: currentUser } } = supabase.auth.getUser();
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    getCurrentUser();
+  }, []);
 
   const { data: registrations = [] } = useQuery({
     queryKey: ['user-registrations', currentUser?.id],
@@ -77,8 +84,8 @@ const UserDashboard = () => {
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-bold">{user.name}</h2>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <h2 className="text-xl font-bold">{currentUser?.email || user.name}</h2>
+                  <p className="text-sm text-muted-foreground">{currentUser?.email || user.email}</p>
                 </div>
                 
                 <div className="space-y-2">
