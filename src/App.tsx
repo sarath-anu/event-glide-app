@@ -18,7 +18,6 @@ import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
-import CommunityChat from "./pages/CommunityChat";
 
 const queryClient = new QueryClient();
 
@@ -44,11 +43,6 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/book" element={<Navigate to="/events" />} />
-            <Route path="/chat" element={
-              <ProtectedRoute>
-                <CommunityChat />
-              </ProtectedRoute>
-            } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={

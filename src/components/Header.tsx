@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, User, Calendar, MessageSquare, Shield } from "lucide-react";
+import { SearchIcon, User, Calendar, Shield } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -63,12 +63,6 @@ const Header = () => {
                 className={`header-nav-link ${isActive("/dashboard") ? "active" : ""}`}
               >
                 Dashboard
-              </Link>
-              <Link 
-                to="/chat" 
-                className={`header-nav-link ${isActive("/chat") ? "active" : ""}`}
-              >
-                Community Chat
               </Link>
               <Link 
                 to="/admin" 
@@ -180,13 +174,6 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Dashboard
-              </Link>
-              <Link
-                to="/chat"
-                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Community Chat
               </Link>
               <Link
                 to="/admin"

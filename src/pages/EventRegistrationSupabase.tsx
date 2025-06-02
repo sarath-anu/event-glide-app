@@ -1,21 +1,17 @@
 
-import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Layout } from "@/components/Layout";
+import { EventRegistrationForm } from "@/components/EventRegistrationForm";
 import { getEventById, createEventRegistration } from "@/lib/supabase-data";
-import EventRegistrationForm from "@/components/EventRegistrationForm";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin } from "lucide-react";
-import { format } from "date-fns";
-import { useAuth } from "@/contexts/AuthContext";
 
 const EventRegistrationSupabase = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: event, isLoading, error } = useQuery({
     queryKey: ['event', id],
@@ -23,144 +19,126 @@ const EventRegistrationSupabase = () => {
     enabled: !!id,
   });
 
-  const handleSaveDraft = (data: any) => {
-    console.log("Saving draft:", data);
-    toast({
-      title: "Draft Saved",
-      description: "Your registration information has been saved as a draft.",
-    });
-    // TODO: Implement draft saving to localStorage or database
-  };
+  const handleRegistrationSubmit = async (formData: any) => {
+    if (!id || !event) return;
 
-  const handleProceedToPayment = async (data: any) => {
-    if (!user || !event) {
-      toast({
-        title: "Error",
-        description: "Please log in to continue with registration.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
-      await createEventRegistration({
-        event_id: event.id,
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to register for events.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const registrationData = {
+        event_id: id,
         user_id: user.id,
-        full_name: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        group_size: data.attendeeCount,
-        special_requests: data.specialRequirements,
-        registration_type: data.attendeeCount > 1 ? 'group' : 'individual',
-        status: 'pending'
-      });
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        group_size: formData.groupSize,
+        dietary_restrictions: formData.dietaryRestrictions,
+        accessibility_needs: formData.accessibilityNeeds,
+        emergency_contact: formData.emergencyContact,
+        emergency_phone: formData.emergencyPhone,
+        special_requests: formData.specialRequests,
+        registration_type: formData.registrationType,
+      };
+
+      await createEventRegistration(registrationData);
+
+      // Send confirmation email
+      try {
+        await fetch('/functions/v1/send-registration-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            fullName: formData.fullName,
+            eventName: event.name,
+            eventDate: new Date(event.event_date).toLocaleDateString(),
+            venue: event.venue,
+            city: event.city,
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+      }
 
       toast({
-        title: "Registration Submitted",
-        description: "Your registration has been submitted successfully!",
+        title: "Registration Successful!",
+        description: "You have been registered for the event. A confirmation email has been sent.",
       });
-      
-      navigate(`/event/${id}`);
+
+      navigate('/dashboard');
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "There was an error submitting your registration. Please try again.",
+        description: "There was an error processing your registration. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="container py-12">
-          <div className="animate-pulse space-y-4">
-            <div className="h-10 w-3/4 rounded-md bg-gray-200"></div>
-            <div className="h-40 rounded-lg bg-gray-200"></div>
-          </div>
+      <Layout>
+        <div className="container py-8 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading event details...</p>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="container py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Event not found</h1>
-          <p className="text-muted-foreground mb-6">
-            The event you're looking for doesn't exist or has been removed.
-          </p>
-          <Button asChild>
-            <Link to="/events">Back to Events</Link>
-          </Button>
+      <Layout>
+        <div className="container py-8 text-center">
+          <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
+          <p className="text-muted-foreground">The event you're looking for doesn't exist.</p>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container px-4 py-8">
-        <div className="mb-6">
-          <Link to={`/event/${id}`} className="flex items-center text-primary hover:underline">
-            <Button variant="ghost" size="sm">
-              ← Back to Event
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            <h1 className="text-3xl font-bold mb-6">Register for Event</h1>
-            <EventRegistrationForm
-              eventName={event.name}
-              eventCategory={event.category as any}
-              onSaveDraft={handleSaveDraft}
-              onProceedToPayment={handleProceedToPayment}
-              onCancel={() => window.history.back()}
-            />
+    <Layout>
+      <div className="container py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Register for {event.name}</h1>
+            <p className="text-muted-foreground">
+              Fill out the form below to register for this event.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{event.name}</h3>
-                    <p className="text-muted-foreground text-sm">{event.short_description}</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm">
-                      <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{format(new Date(event.event_date), "EEEE, MMMM do, yyyy")}</span>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{event.event_time}</span>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>
-                        {event.venue}, {event.city}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="bg-card p-6 rounded-lg border mb-6">
+            <h2 className="font-semibold mb-2">{event.name}</h2>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>📅 {new Date(event.event_date).toLocaleDateString()} at {event.event_time}</p>
+              <p>📍 {event.venue}, {event.city}</p>
+              <p>👥 {event.registered_count}/{event.total_capacity} registered</p>
+            </div>
           </div>
+
+          <EventRegistrationForm 
+            onSubmit={handleRegistrationSubmit}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

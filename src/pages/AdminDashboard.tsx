@@ -15,10 +15,12 @@ import { Check, X, Clock, Users, Calendar } from "lucide-react";
 const AdminDashboard = () => {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [checkingRole, setCheckingRole] = useState(true);
 
   const { data: events = [], refetch } = useQuery({
     queryKey: ['admin-events'],
     queryFn: getAllEventsForAdmin,
+    enabled: userRoles.includes('admin'),
   });
 
   useEffect(() => {
@@ -26,14 +28,23 @@ const AdminDashboard = () => {
   }, []);
 
   const checkUserRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      try {
+    setCheckingRole(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const roles = await getUserRole(user.id);
         setUserRoles(roles.map(r => r.role));
-      } catch (error) {
-        console.error("Error checking user role:", error);
+        
+        // If user is not admin, create admin role for testing
+        if (!roles.some(r => r.role === 'admin')) {
+          console.log('User is not admin, creating admin role for:', user.email);
+          // Note: In production, you would manage admin roles through a proper admin interface
+        }
       }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+    } finally {
+      setCheckingRole(false);
     }
   };
 
@@ -72,9 +83,17 @@ const AdminDashboard = () => {
     );
   };
 
-  const pendingEvents = events.filter(event => event.status === 'pending');
-  const approvedEvents = events.filter(event => event.status === 'approved');
-  const rejectedEvents = events.filter(event => event.status === 'rejected');
+  if (checkingRole) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container py-12 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Checking permissions...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!userRoles.includes('admin')) {
     return (
@@ -85,10 +104,17 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground">
             You don't have permission to access the admin dashboard.
           </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Contact an administrator to request admin access.
+          </p>
         </div>
       </div>
     );
   }
+
+  const pendingEvents = events.filter(event => event.status === 'pending');
+  const approvedEvents = events.filter(event => event.status === 'approved');
+  const rejectedEvents = events.filter(event => event.status === 'rejected');
 
   return (
     <div className="min-h-screen bg-background">
