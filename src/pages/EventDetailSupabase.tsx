@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
+import LikeButton from "@/components/LikeButton";
+import ReviewSection from "@/components/ReviewSection";
 import { getEventById } from "@/lib/supabase-data";
 import { format } from "date-fns";
 import {
   CalendarDays,
   Clock,
   MapPin,
-  Heart,
   Share2,
-  Star,
   Phone,
   Mail,
   UserCircle,
@@ -23,18 +23,12 @@ import {
 
 const EventDetailSupabase = () => {
   const { id } = useParams<{ id: string }>();
-  const [liked, setLiked] = useState(false);
 
   const { data: event, isLoading, error } = useQuery({
     queryKey: ['event', id],
     queryFn: () => getEventById(id!),
     enabled: !!id,
   });
-
-  const handleLike = () => {
-    setLiked(!liked);
-    // TODO: Implement like functionality with Supabase
-  };
 
   const isBookingOpen = event
     ? new Date(event.booking_opening_date) <= new Date()
@@ -111,17 +105,10 @@ const EventDetailSupabase = () => {
           <h1 className="text-3xl md:text-4xl font-bold">{event.name}</h1>
 
           <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className={liked ? "text-red-500 border-red-500" : ""}
-              onClick={handleLike}
-            >
-              <Heart
-                className={`h-4 w-4 mr-2 ${liked ? "fill-red-500" : ""}`}
-              />
-              {liked ? "Liked" : "Like"}
-            </Button>
+            <LikeButton 
+              eventId={event.id} 
+              likesCount={event.likes || 0} 
+            />
             <Button variant="outline" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
               Share
@@ -171,34 +158,13 @@ const EventDetailSupabase = () => {
               </CardContent>
             </Card>
 
-            {/* Reviews Section Placeholder */}
-            <Card className="mt-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold">Reviews</h3>
-                  <div className="flex items-center">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(event.rating || 0)
-                              ? "text-yellow-500 fill-yellow-500"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-2 font-medium">
-                      {(event.rating || 0).toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Login to leave a review for this event.
-                </p>
-              </CardContent>
-            </Card>
+            {/* Reviews Section */}
+            <div className="mt-6">
+              <ReviewSection 
+                eventId={event.id} 
+                eventRating={event.rating || 0} 
+              />
+            </div>
           </div>
 
           {/* Sidebar */}

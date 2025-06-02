@@ -1,14 +1,19 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Event, events } from "@/lib/data";
-import EventCard from "@/components/EventCard";
-import { Calendar, Heart, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import EventCardSupabase from "@/components/EventCardSupabase";
+import InvoiceDownload from "@/components/InvoiceDownload";
+import { getUserRegistrations, getUserBookings, getUserInvoices } from "@/lib/supabase-data";
+import { supabase } from "@/integrations/supabase/client";
+import { Calendar, Heart, Star, Receipt, Ticket } from "lucide-react";
+import { format } from "date-fns";
 
 // Mockup for user dashboard
 const user = {
@@ -18,34 +23,44 @@ const user = {
   initials: "JD",
 };
 
-// Mockup for registered events
-const registeredEvents = events.slice(0, 2);
-
-// Mockup for liked events
-const likedEvents = events.slice(2, 5);
-
-// Mockup for user reviews
-const userReviews = [
-  {
-    id: "1",
-    eventId: "1",
-    eventName: "Annual College Basketball Tournament",
-    rating: 4,
-    comment: "Great event! Well organized and lots of fun.",
-    date: "2023-06-20T00:00:00Z"
-  },
-  {
-    id: "2",
-    eventId: "4",
-    eventName: "Summer Music Festival",
-    rating: 5,
-    comment: "Amazing experience! The lineup was incredible and the venue was perfect.",
-    date: "2023-05-15T00:00:00Z"
-  }
-];
-
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState("events");
+
+  // Get current user
+  const { data: { user: currentUser } } = supabase.auth.getUser();
+
+  const { data: registrations = [] } = useQuery({
+    queryKey: ['user-registrations', currentUser?.id],
+    queryFn: () => getUserRegistrations(currentUser?.id || ''),
+    enabled: !!currentUser?.id,
+  });
+
+  const { data: bookings = [] } = useQuery({
+    queryKey: ['user-bookings', currentUser?.id],
+    queryFn: () => getUserBookings(currentUser?.id || ''),
+    enabled: !!currentUser?.id,
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['user-invoices', currentUser?.id],
+    queryFn: () => getUserInvoices(currentUser?.id || ''),
+    enabled: !!currentUser?.id,
+  });
+
+  const getPaymentStatusBadge = (status: string) => {
+    const variants = {
+      completed: "default",
+      pending: "secondary",
+      failed: "destructive",
+      refunded: "outline",
+    } as const;
+
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,7 +88,11 @@ const UserDashboard = () => {
                   <Button variant="outline" className="w-full">
                     Account Settings
                   </Button>
-                  <Button variant="outline" className="w-full text-destructive">
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-destructive"
+                    onClick={() => supabase.auth.signOut()}
+                  >
                     Log Out
                   </Button>
                 </div>
@@ -87,36 +106,59 @@ const UserDashboard = () => {
               <TabsList className="mb-6">
                 <TabsTrigger value="events" className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
-                  My Events
+                  Registrations
                 </TabsTrigger>
-                <TabsTrigger value="likes" className="flex items-center">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Liked Events
+                <TabsTrigger value="bookings" className="flex items-center">
+                  <Ticket className="h-4 w-4 mr-2" />
+                  Booked Tickets
                 </TabsTrigger>
-                <TabsTrigger value="reviews" className="flex items-center">
-                  <Star className="h-4 w-4 mr-2" />
-                  My Reviews
+                <TabsTrigger value="invoices" className="flex items-center">
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Invoices
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="events">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Registered Events</CardTitle>
+                    <CardTitle>Event Registrations</CardTitle>
                     <CardDescription>
                       Events you have registered for
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {registeredEvents.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {registeredEvents.map((event) => (
-                          <EventCard key={event.id} event={event} />
+                    {registrations.length > 0 ? (
+                      <div className="space-y-4">
+                        {registrations.map((registration) => (
+                          <div key={registration.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg">
+                                  {registration.events?.name}
+                                </h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                                  <span>📅 {registration.events?.event_date ? format(new Date(registration.events.event_date), "MMM dd, yyyy") : 'N/A'}</span>
+                                  <span>📍 {registration.events?.venue}, {registration.events?.city}</span>
+                                  <span>👥 {registration.group_size || 1} {registration.group_size === 1 ? 'person' : 'people'}</span>
+                                </div>
+                                <div className="mt-2">
+                                  <Badge variant={registration.status === 'confirmed' ? 'default' : 'secondary'}>
+                                    {registration.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-muted-foreground">
+                                  Registered: {format(new Date(registration.created_at!), "MMM dd, yyyy")}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <h3 className="text-lg font-medium mb-2">No registered events</h3>
+                        <h3 className="text-lg font-medium mb-2">No registrations</h3>
                         <p className="text-muted-foreground mb-4">
                           You haven't registered for any events yet.
                         </p>
@@ -129,26 +171,56 @@ const UserDashboard = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="likes">
+              <TabsContent value="bookings">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Liked Events</CardTitle>
+                    <CardTitle>Booked Tickets</CardTitle>
                     <CardDescription>
-                      Events you've shown interest in
+                      Tickets you have purchased for events
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {likedEvents.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {likedEvents.map((event) => (
-                          <EventCard key={event.id} event={event} />
+                    {bookings.length > 0 ? (
+                      <div className="space-y-4">
+                        {bookings.map((booking) => (
+                          <div key={booking.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg">
+                                  {booking.events?.name}
+                                </h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                                  <span>📅 {booking.events?.event_date ? format(new Date(booking.events.event_date), "MMM dd, yyyy") : 'N/A'}</span>
+                                  <span>📍 {booking.events?.venue}, {booking.events?.city}</span>
+                                  <span>🎫 {booking.ticket_type}</span>
+                                  <span>🔢 Qty: {booking.quantity}</span>
+                                </div>
+                                <div className="mt-2 flex items-center gap-2">
+                                  {getPaymentStatusBadge(booking.payment_status)}
+                                  {booking.booking_reference && (
+                                    <span className="text-sm text-muted-foreground">
+                                      Ref: {booking.booking_reference}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-semibold">
+                                  ${booking.total_amount.toFixed(2)}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Booked: {format(new Date(booking.created_at!), "MMM dd, yyyy")}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <h3 className="text-lg font-medium mb-2">No liked events</h3>
+                        <h3 className="text-lg font-medium mb-2">No booked tickets</h3>
                         <p className="text-muted-foreground mb-4">
-                          You haven't liked any events yet.
+                          You haven't booked any tickets yet.
                         </p>
                         <Button asChild>
                           <Link to="/events">Explore Events</Link>
@@ -159,53 +231,50 @@ const UserDashboard = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="reviews">
+              <TabsContent value="invoices">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Your Reviews</CardTitle>
+                    <CardTitle>Payment Invoices</CardTitle>
                     <CardDescription>
-                      Reviews you've left for events
+                      Download and manage your payment invoices
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {userReviews.length > 0 ? (
-                      <div className="space-y-6">
-                        {userReviews.map((review) => (
-                          <div key={review.id} className="border rounded-lg p-4">
-                            <div className="flex justify-between mb-2">
-                              <h4 className="font-medium">
-                                <Link to={`/event/${review.eventId}`} className="hover:underline">
-                                  {review.eventName}
-                                </Link>
-                              </h4>
-                              <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < review.rating
-                                        ? "text-yellow-500 fill-yellow-500"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
+                    {invoices.length > 0 ? (
+                      <div className="space-y-4">
+                        {invoices.map((invoice) => (
+                          <div key={invoice.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h3 className="font-semibold">
+                                  Invoice {invoice.invoice_number}
+                                </h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {invoice.event_bookings?.events?.name}
+                                </p>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                                  <span>📅 {format(new Date(invoice.invoice_date), "MMM dd, yyyy")}</span>
+                                  <span>💰 ${invoice.total_amount.toFixed(2)}</span>
+                                  <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
+                                    {invoice.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <InvoiceDownload invoiceId={invoice.id} />
                               </div>
                             </div>
-                            <p className="text-sm">{review.comment}</p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {new Date(review.date).toLocaleDateString()}
-                            </p>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <h3 className="text-lg font-medium mb-2">No reviews</h3>
+                        <h3 className="text-lg font-medium mb-2">No invoices</h3>
                         <p className="text-muted-foreground mb-4">
-                          You haven't reviewed any events yet.
+                          You don't have any invoices yet.
                         </p>
                         <Button asChild>
-                          <Link to="/events">Explore Events</Link>
+                          <Link to="/events">Book an Event</Link>
                         </Button>
                       </div>
                     )}
