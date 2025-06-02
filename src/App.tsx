@@ -8,10 +8,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Pages
-import Index from "./pages/Index";
-import EventListing from "./pages/EventListing";
-import EventDetail from "./pages/EventDetail";
-import EventRegistration from "./pages/EventRegistration";
+import IndexSupabase from "./pages/IndexSupabase";
+import EventListingSupabase from "./pages/EventListingSupabase";
+import EventDetailSupabase from "./pages/EventDetailSupabase";
+import EventRegistrationSupabase from "./pages/EventRegistrationSupabase";
 import EventBooking from "./pages/EventBooking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -30,12 +30,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/events" element={<EventListing />} />
-            <Route path="/event/:id" element={<EventDetail />} />
+            <Route path="/" element={<IndexSupabase />} />
+            <Route path="/events" element={<EventListingSupabase />} />
+            <Route path="/event/:id" element={<EventDetailSupabase />} />
             <Route path="/event/:id/register" element={
               <ProtectedRoute>
-                <EventRegistration />
+                <EventRegistrationSupabase />
               </ProtectedRoute>
             } />
             <Route path="/event/:id/book" element={

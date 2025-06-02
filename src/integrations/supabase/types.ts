@@ -9,6 +9,211 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      event_bookings: {
+        Row: {
+          booking_reference: string | null
+          cardholder_name: string | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          payment_status: string
+          quantity: number
+          ticket_type: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booking_reference?: string | null
+          cardholder_name?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          payment_status?: string
+          quantity: number
+          ticket_type: string
+          total_amount: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booking_reference?: string | null
+          cardholder_name?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          payment_status?: string
+          quantity?: number
+          ticket_type?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_bookings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_registrations: {
+        Row: {
+          accessibility_needs: string | null
+          created_at: string | null
+          dietary_restrictions: string | null
+          email: string
+          emergency_contact: string | null
+          emergency_phone: string | null
+          event_id: string | null
+          full_name: string
+          group_size: number | null
+          id: string
+          phone: string | null
+          registration_type: string
+          special_requests: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          accessibility_needs?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          email: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          event_id?: string | null
+          full_name: string
+          group_size?: number | null
+          id?: string
+          phone?: string | null
+          registration_type?: string
+          special_requests?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          accessibility_needs?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          email?: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          event_id?: string | null
+          full_name?: string
+          group_size?: number | null
+          id?: string
+          phone?: string | null
+          registration_type?: string
+          special_requests?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          booking_opening_date: string
+          category: string
+          city: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          event_date: string
+          event_time: string
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          likes: number | null
+          name: string
+          organizer_id: string | null
+          organizer_name: string
+          price_group: number | null
+          price_standard: number | null
+          price_vip: number | null
+          rating: number | null
+          registered_count: number
+          short_description: string | null
+          status: string
+          tags: string[] | null
+          total_capacity: number
+          trending: boolean | null
+          updated_at: string | null
+          venue: string
+        }
+        Insert: {
+          booking_opening_date: string
+          category: string
+          city: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date: string
+          event_time: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          likes?: number | null
+          name: string
+          organizer_id?: string | null
+          organizer_name: string
+          price_group?: number | null
+          price_standard?: number | null
+          price_vip?: number | null
+          rating?: number | null
+          registered_count?: number
+          short_description?: string | null
+          status?: string
+          tags?: string[] | null
+          total_capacity?: number
+          trending?: boolean | null
+          updated_at?: string | null
+          venue: string
+        }
+        Update: {
+          booking_opening_date?: string
+          category?: string
+          city?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          likes?: number | null
+          name?: string
+          organizer_id?: string | null
+          organizer_name?: string
+          price_group?: number | null
+          price_standard?: number | null
+          price_vip?: number | null
+          rating?: number | null
+          registered_count?: number
+          short_description?: string | null
+          status?: string
+          tags?: string[] | null
+          total_capacity?: number
+          trending?: boolean | null
+          updated_at?: string | null
+          venue?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
