@@ -43,7 +43,7 @@ function App() {
               <Route path="/events/:id/booking" element={<EventBooking />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/dashboard" element={<EventDashboard />} />
               <Route path="/admin" element={<EventDashboard />} />
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/community-chat" element={<CommunityChat />} />

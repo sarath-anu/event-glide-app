@@ -1,113 +1,81 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Calendar, LayoutDashboard, LogOut } from "lucide-react";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Menu, X, User, LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
-  
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await signOut();
+    navigate('/');
   };
 
-  const getUserInitials = (email: string) => {
-    return email.split('@')[0].substring(0, 2).toUpperCase();
-  };
+  const navItems = [
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/events" },
+    { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center">
-            <Calendar className="h-6 w-6 text-primary mr-2" />
-            <span className="font-heading font-semibold text-xl">EventEase</span>
+    <header className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="font-bold text-xl text-primary">
+            EventEase
           </Link>
-        </div>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link 
-            to="/" 
-            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
-          >
-            Home
-          </Link>
-          <Link 
-            to="/events" 
-            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/events") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
-          >
-            Events
-          </Link>
-          <Link 
-            to="/about" 
-            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/about") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
-          >
-            About
-          </Link>
-          <Link 
-            to="/contact" 
-            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/contact") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
-          >
-            Contact
-          </Link>
-        </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-2">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="text-gray-600 hover:text-primary transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-4">
+                <Link to="/dashboard">
+                  <Button variant="outline" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {getUserInitials(user.email || '')}
-                        </AvatarFallback>
-                      </Avatar>
+                    <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-4 w-4" />
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="flex items-center">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link to="/profile" className="flex items-center">
-                        <span className="mr-2">👤</span>
-                        <span>Profile</span>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Profile & Settings</span>
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
@@ -116,142 +84,70 @@ const Header = () => {
                 </DropdownMenu>
               </div>
             ) : (
-              <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/login">Log in</Link>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">Login</Link>
                 </Button>
-                <Button size="sm" className="ml-2" asChild>
-                  <Link to="/register">Sign up</Link>
+                <Button size="sm" asChild>
+                  <Link to="/register">Sign Up</Link>
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+            className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <span className="sr-only">Open main menu</span>
-            {isMenuOpen ? (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
-      </div>
 
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="md:hidden px-2 pb-3 pt-2 shadow-lg">
-          <Link
-            to="/"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            to="/events"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Events
-          </Link>
-          {user && (
-            <>
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span>👤</span>
-                Profile
-              </Link>
-            </>
-          )}
-          <Link
-            to="/about"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            About
-          </Link>
-          <Link
-            to="/contact"
-            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Contact
-          </Link>
-          <div className="mt-4 flex flex-col space-y-2">
-            {user ? (
-              <>
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  {user.email}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="justify-center" 
-                  onClick={() => {
-                    handleSignOut();
-                    setIsMenuOpen(false);
-                  }}
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t">
+            <nav className="flex flex-col space-y-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="text-gray-600 hover:text-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  Log out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" size="sm" className="justify-center" asChild>
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                    Log in
+                  {item.name}
+                </Link>
+              ))}
+              {user ? (
+                <div className="flex flex-col space-y-2 pt-4 border-t">
+                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Dashboard
+                    </Button>
                   </Link>
-                </Button>
-                <Button size="sm" className="justify-center" asChild>
-                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                    Sign up
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="ghost" size="sm" className="w-full">
+                      Profile & Settings
+                    </Button>
                   </Link>
-                </Button>
-              </>
-            )}
+                  <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full">
+                    Log out
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-2 pt-4 border-t">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link to="/register" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                  </Button>
+                </div>
+              )}
+            </nav>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };

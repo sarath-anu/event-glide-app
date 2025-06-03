@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -226,10 +225,10 @@ const EventDetailSupabase = () => {
                     </Button>
                   ) : isBookingOpen ? (
                     <div className="space-y-2">
-                      <Link to={`/event/${id}/register`}>
+                      <Link to={`/events/${id}/register`}>
                         <Button className="w-full">Register</Button>
                       </Link>
-                      <Link to={`/event/${id}/book`}>
+                      <Link to={`/events/${id}/booking`}>
                         <Button variant="outline" className="w-full">Book Tickets</Button>
                       </Link>
                     </div>
