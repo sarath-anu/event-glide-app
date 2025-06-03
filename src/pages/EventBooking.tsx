@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -71,10 +70,14 @@ const EventBooking = () => {
         payment_status: 'completed',
       });
 
+      // Generate invoice number
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${Date.now()}`;
+
       // Create invoice
       await createPaymentInvoice({
         booking_id: booking.id,
         user_id: user.id,
+        invoice_number: invoiceNumber,
         subtotal: total,
         tax_amount: total * 0.1, // 10% tax
         total_amount: total * 1.1,
