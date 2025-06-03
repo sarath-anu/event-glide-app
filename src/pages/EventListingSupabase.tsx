@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getEvents, searchEvents, getEventsByCategory } from "@/lib/supabase-data";
@@ -14,10 +13,22 @@ const EventListingSupabase = () => {
   const categoryParam = searchParams.get('category');
   const searchQuery = searchParams.get('search');
   
-  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || "");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam || null);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>(searchQuery || "");
   const [page, setPage] = useState(1);
   const eventsPerPage = 12;
+
+  // Define categories for the filter
+  const categories = [
+    { id: "music", name: "Music" },
+    { id: "sports", name: "Sports" },
+    { id: "technology", name: "Technology" },
+    { id: "business", name: "Business" },
+    { id: "education", name: "Education" },
+    { id: "food", name: "Food & Drink" },
+    { id: "art", name: "Art & Culture" },
+    { id: "health", name: "Health & Wellness" }
+  ];
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['events', selectedCategory, currentSearchQuery],
@@ -41,7 +52,7 @@ const EventListingSupabase = () => {
     }
   }, [categoryParam, searchQuery]);
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
     setCurrentSearchQuery("");
     setPage(1);
@@ -49,12 +60,12 @@ const EventListingSupabase = () => {
 
   const handleSearch = (query: string) => {
     setCurrentSearchQuery(query);
-    setSelectedCategory("");
+    setSelectedCategory(null);
     setPage(1);
   };
 
   const clearFilters = () => {
-    setSelectedCategory("");
+    setSelectedCategory(null);
     setCurrentSearchQuery("");
     setPage(1);
   };
@@ -112,8 +123,9 @@ const EventListingSupabase = () => {
           {/* Category Filter */}
           <div className="mb-6">
             <CategoryFilter 
+              categories={categories}
               selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
+              onSelectCategory={handleCategoryChange}
             />
           </div>
 
@@ -123,7 +135,7 @@ const EventListingSupabase = () => {
               <span className="text-sm text-muted-foreground">Active filters:</span>
               {selectedCategory && (
                 <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
-                  Category: {selectedCategory}
+                  Category: {categories.find(cat => cat.id === selectedCategory)?.name || selectedCategory}
                 </span>
               )}
               {currentSearchQuery && (
