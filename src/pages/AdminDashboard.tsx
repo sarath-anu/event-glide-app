@@ -33,12 +33,26 @@ const AdminDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const roles = await getUserRole(user.id);
-        setUserRoles(roles.map(r => r.role));
+        const roleNames = roles.map(r => r.role);
+        setUserRoles(roleNames);
         
-        // If user is not admin, create admin role for testing
-        if (!roles.some(r => r.role === 'admin')) {
-          console.log('User is not admin, creating admin role for:', user.email);
-          // Note: In production, you would manage admin roles through a proper admin interface
+        // Auto-create admin role for specific email addresses
+        if (!roleNames.includes('admin') && user.email === 'admin@eventease.com') {
+          try {
+            const { error } = await supabase
+              .from('user_roles')
+              .insert({ user_id: user.id, role: 'admin' });
+            
+            if (!error) {
+              setUserRoles([...roleNames, 'admin']);
+              toast({
+                title: "Admin Role Assigned",
+                description: "You have been granted admin access.",
+              });
+            }
+          } catch (error) {
+            console.error("Error creating admin role:", error);
+          }
         }
       }
     } catch (error) {
@@ -101,12 +115,20 @@ const AdminDashboard = () => {
         <Header />
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             You don't have permission to access the admin dashboard.
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Contact an administrator to request admin access.
-          </p>
+          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 max-w-md mx-auto">
+            <h3 className="font-medium text-blue-900 mb-2">Admin Access Instructions:</h3>
+            <div className="text-sm text-blue-800 space-y-2">
+              <p>1. Create an account with email: <strong>admin@eventease.com</strong></p>
+              <p>2. Use password: <strong>admin123</strong></p>
+              <p>3. Admin role will be automatically assigned</p>
+            </div>
+            <Button asChild className="mt-4">
+              <a href="/admin-login">Admin Login</a>
+            </Button>
+          </div>
         </div>
       </div>
     );

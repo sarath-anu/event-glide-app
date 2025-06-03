@@ -24,7 +24,7 @@ import {
 const EventDetailSupabase = () => {
   const { id } = useParams<{ id: string }>();
 
-  const { data: event, isLoading, error } = useQuery({
+  const { data: event, isLoading, error, refetch } = useQuery({
     queryKey: ['event', id],
     queryFn: () => getEventById(id!),
     enabled: !!id,
@@ -44,6 +44,35 @@ const EventDetailSupabase = () => {
     if (registrationPercentage >= 80) return "filled-progress";
     if (registrationPercentage >= 50) return "medium-progress";
     return "low-progress";
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: event?.name || 'Event',
+      text: event?.short_description || 'Check out this amazing event!',
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy URL to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        // You could also show a toast here
+        alert('Event link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback: copy URL to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Event link copied to clipboard!');
+      } catch (clipboardError) {
+        console.error('Clipboard error:', clipboardError);
+        alert('Unable to share. Please copy the URL manually.');
+      }
+    }
   };
 
   if (isLoading) {
@@ -109,7 +138,7 @@ const EventDetailSupabase = () => {
               eventId={event.id} 
               likesCount={event.likes || 0} 
             />
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
@@ -162,7 +191,8 @@ const EventDetailSupabase = () => {
             <div className="mt-6">
               <ReviewSection 
                 eventId={event.id} 
-                eventRating={event.rating || 0} 
+                eventRating={event.rating || 0}
+                onRatingUpdate={refetch}
               />
             </div>
           </div>

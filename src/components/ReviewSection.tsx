@@ -12,6 +12,7 @@ import { format } from "date-fns";
 interface ReviewSectionProps {
   eventId: string;
   eventRating: number;
+  onRatingUpdate?: () => void;
 }
 
 interface Review {
@@ -20,9 +21,10 @@ interface Review {
   comment: string | null;
   created_at: string;
   user_id: string;
+  user_email?: string;
 }
 
-const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
+const ReviewSection = ({ eventId, eventRating, onRatingUpdate }: ReviewSectionProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userReview, setUserReview] = useState<Review | null>(null);
   const [rating, setRating] = useState(0);
@@ -38,7 +40,24 @@ const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
   const fetchReviews = async () => {
     try {
       const data = await getEventReviews(eventId);
-      setReviews(data);
+      // Fetch user emails for each review
+      const reviewsWithEmails = await Promise.all(
+        data.map(async (review) => {
+          try {
+            const { data: userData } = await supabase.auth.admin.getUserById(review.user_id);
+            return {
+              ...review,
+              user_email: userData.user?.email || 'Anonymous User'
+            };
+          } catch {
+            return {
+              ...review,
+              user_email: 'Anonymous User'
+            };
+          }
+        })
+      );
+      setReviews(reviewsWithEmails);
     } catch (error) {
       console.error("Error fetching reviews:", error);
     }
@@ -110,6 +129,7 @@ const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
       setShowReviewForm(false);
       fetchReviews();
       checkUserReview();
+      onRatingUpdate?.(); // Trigger event data refresh
     } catch (error) {
       console.error("Error submitting review:", error);
       toast({
@@ -200,7 +220,7 @@ const ReviewSection = ({ eventId, eventRating }: ReviewSectionProps) => {
                   <div>
                     <div className="flex items-center mb-1">
                       {renderStars(review.rating)}
-                      <span className="ml-2 font-medium">Anonymous User</span>
+                      <span className="ml-2 font-medium">{review.user_email}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(review.created_at), "MMM dd, yyyy")}

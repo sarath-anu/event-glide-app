@@ -17,6 +17,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/book" element={<Navigate to="/events" />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <UserDashboard />

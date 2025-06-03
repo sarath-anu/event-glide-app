@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, User, Calendar, Shield } from "lucide-react";
+import { SearchIcon, User, Calendar, Shield, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -56,23 +56,6 @@ const Header = () => {
           >
             Events
           </Link>
-          {user && (
-            <>
-              <Link 
-                to="/dashboard" 
-                className={`header-nav-link ${isActive("/dashboard") ? "active" : ""}`}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                to="/admin" 
-                className={`header-nav-link ${isActive("/admin") ? "active" : ""} flex items-center gap-1`}
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
-            </>
-          )}
           <Link 
             to="/about" 
             className={`header-nav-link ${isActive("/about") ? "active" : ""}`}
@@ -88,6 +71,25 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-4">
+          {/* Dashboard Icon - Always visible on right side */}
+          {user && (
+            <Button variant="ghost" size="sm" asChild className="p-2">
+              <Link to="/dashboard">
+                <LayoutDashboard className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
+
+          {/* Admin Button - Only for admins */}
+          {user && (
+            <Button variant="outline" size="sm" asChild className="hidden md:flex">
+              <Link to="/admin" className="flex items-center gap-1">
+                <Shield className="h-4 w-4" />
+                Admin
+              </Link>
+            </Button>
+          )}
+
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
@@ -170,9 +172,10 @@ const Header = () => {
             <>
               <Link
                 to="/dashboard"
-                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
               <Link
