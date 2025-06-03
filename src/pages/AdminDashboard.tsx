@@ -1,21 +1,47 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getAllEventsForAdmin, updateEventStatus, getUserRole } from "@/lib/supabase-data";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { getAllEventsForAdmin, updateEventStatus, getUserRole, createEvent } from "@/lib/supabase-data";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Check, X, Clock, Users, Calendar } from "lucide-react";
+import { Check, X, Clock, Users, Calendar, Plus } from "lucide-react";
 
 const AdminDashboard = () => {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    name: "",
+    description: "",
+    short_description: "",
+    category: "",
+    event_date: "",
+    event_time: "",
+    venue: "",
+    city: "",
+    organizer_name: "",
+    contact_email: "",
+    contact_phone: "",
+    total_capacity: 100,
+    price_standard: 50,
+    price_vip: 120,
+    price_group: 40,
+    booking_opening_date: "",
+  });
+  const navigate = useNavigate();
 
   const { data: events = [], refetch } = useQuery({
     queryKey: ['admin-events'],
@@ -31,32 +57,41 @@ const AdminDashboard = () => {
     setCheckingRole(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const roles = await getUserRole(user.id);
-        const roleNames = roles.map(r => r.role);
-        setUserRoles(roleNames);
-        
-        // Auto-create admin role for specific email addresses
-        if (!roleNames.includes('admin') && user.email === 'admin@eventease.com') {
-          try {
-            const { error } = await supabase
-              .from('user_roles')
-              .insert({ user_id: user.id, role: 'admin' });
-            
-            if (!error) {
-              setUserRoles([...roleNames, 'admin']);
-              toast({
-                title: "Admin Role Assigned",
-                description: "You have been granted admin access.",
-              });
-            }
-          } catch (error) {
-            console.error("Error creating admin role:", error);
+      if (!user) {
+        navigate('/admin-login');
+        return;
+      }
+
+      const roles = await getUserRole(user.id);
+      const roleNames = roles.map(r => r.role);
+      setUserRoles(roleNames);
+      
+      // Auto-create admin role for specific email addresses
+      if (!roleNames.includes('admin') && user.email === 'admin@eventease.com') {
+        try {
+          const { error } = await supabase
+            .from('user_roles')
+            .insert({ user_id: user.id, role: 'admin' });
+          
+          if (!error) {
+            setUserRoles([...roleNames, 'admin']);
+            toast({
+              title: "Admin Role Assigned",
+              description: "You have been granted admin access.",
+            });
           }
+        } catch (error) {
+          console.error("Error creating admin role:", error);
         }
+      }
+
+      if (!roleNames.includes('admin') && user.email !== 'admin@eventease.com') {
+        navigate('/admin-login');
+        return;
       }
     } catch (error) {
       console.error("Error checking user role:", error);
+      navigate('/admin-login');
     } finally {
       setCheckingRole(false);
     }
@@ -76,6 +111,56 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to update event status.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await createEvent({
+        ...newEvent,
+        organizer_id: user.id,
+        status: 'approved', // Admin created events are auto-approved
+      });
+
+      toast({
+        title: "Event Created",
+        description: "The event has been created successfully.",
+      });
+
+      setShowCreateEvent(false);
+      setNewEvent({
+        name: "",
+        description: "",
+        short_description: "",
+        category: "",
+        event_date: "",
+        event_time: "",
+        venue: "",
+        city: "",
+        organizer_name: "",
+        contact_email: "",
+        contact_phone: "",
+        total_capacity: 100,
+        price_standard: 50,
+        price_vip: 120,
+        price_group: 40,
+        booking_opening_date: "",
+      });
+      refetch();
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create event.",
         variant: "destructive",
       });
     } finally {
@@ -118,17 +203,9 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground mb-4">
             You don't have permission to access the admin dashboard.
           </p>
-          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 max-w-md mx-auto">
-            <h3 className="font-medium text-blue-900 mb-2">Admin Access Instructions:</h3>
-            <div className="text-sm text-blue-800 space-y-2">
-              <p>1. Create an account with email: <strong>admin@eventease.com</strong></p>
-              <p>2. Use password: <strong>admin123</strong></p>
-              <p>3. Admin role will be automatically assigned</p>
-            </div>
-            <Button asChild className="mt-4">
-              <a href="/admin-login">Admin Login</a>
-            </Button>
-          </div>
+          <Button onClick={() => navigate('/admin-login')}>
+            Go to Admin Login
+          </Button>
         </div>
       </div>
     );
@@ -143,11 +220,210 @@ const AdminDashboard = () => {
       <Header />
       
       <div className="container py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage events, registrations, and user activities
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Manage events, registrations, and user activities
+            </p>
+          </div>
+          
+          <Dialog open={showCreateEvent} onOpenChange={setShowCreateEvent}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Event
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Event</DialogTitle>
+                <DialogDescription>
+                  Fill in the details to create a new event
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateEvent} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Event Name</Label>
+                    <Input
+                      id="name"
+                      value={newEvent.name}
+                      onChange={(e) => setNewEvent({...newEvent, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={newEvent.category} onValueChange={(value) => setNewEvent({...newEvent, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Technology">Technology</SelectItem>
+                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="Arts">Arts</SelectItem>
+                        <SelectItem value="Sports">Sports</SelectItem>
+                        <SelectItem value="Music">Music</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="short_description">Short Description</Label>
+                  <Input
+                    id="short_description"
+                    value={newEvent.short_description}
+                    onChange={(e) => setNewEvent({...newEvent, short_description: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Full Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event_date">Event Date</Label>
+                    <Input
+                      id="event_date"
+                      type="date"
+                      value={newEvent.event_date}
+                      onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event_time">Event Time</Label>
+                    <Input
+                      id="event_time"
+                      type="time"
+                      value={newEvent.event_time}
+                      onChange={(e) => setNewEvent({...newEvent, event_time: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="venue">Venue</Label>
+                    <Input
+                      id="venue"
+                      value={newEvent.venue}
+                      onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={newEvent.city}
+                      onChange={(e) => setNewEvent({...newEvent, city: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="organizer_name">Organizer Name</Label>
+                    <Input
+                      id="organizer_name"
+                      value={newEvent.organizer_name}
+                      onChange={(e) => setNewEvent({...newEvent, organizer_name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact_email">Contact Email</Label>
+                    <Input
+                      id="contact_email"
+                      type="email"
+                      value={newEvent.contact_email}
+                      onChange={(e) => setNewEvent({...newEvent, contact_email: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="total_capacity">Total Capacity</Label>
+                    <Input
+                      id="total_capacity"
+                      type="number"
+                      value={newEvent.total_capacity}
+                      onChange={(e) => setNewEvent({...newEvent, total_capacity: parseInt(e.target.value)})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="booking_opening_date">Booking Opening Date</Label>
+                    <Input
+                      id="booking_opening_date"
+                      type="date"
+                      value={newEvent.booking_opening_date}
+                      onChange={(e) => setNewEvent({...newEvent, booking_opening_date: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price_standard">Standard Price ($)</Label>
+                    <Input
+                      id="price_standard"
+                      type="number"
+                      value={newEvent.price_standard}
+                      onChange={(e) => setNewEvent({...newEvent, price_standard: parseFloat(e.target.value)})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price_vip">VIP Price ($)</Label>
+                    <Input
+                      id="price_vip"
+                      type="number"
+                      value={newEvent.price_vip}
+                      onChange={(e) => setNewEvent({...newEvent, price_vip: parseFloat(e.target.value)})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price_group">Group Price ($)</Label>
+                    <Input
+                      id="price_group"
+                      type="number"
+                      value={newEvent.price_group}
+                      onChange={(e) => setNewEvent({...newEvent, price_group: parseFloat(e.target.value)})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowCreateEvent(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Creating..." : "Create Event"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Cards */}

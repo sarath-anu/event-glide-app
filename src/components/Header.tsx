@@ -1,10 +1,17 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SearchIcon, User, Calendar, Shield, LayoutDashboard } from "lucide-react";
+import { Calendar, Shield, LayoutDashboard, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const location = useLocation();
@@ -30,6 +37,10 @@ const Header = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getUserInitials = (email: string) => {
+    return email.split('@')[0].substring(0, 2).toUpperCase();
   };
 
   return (
@@ -70,17 +81,8 @@ const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-4">
-          {/* Dashboard Icon - Always visible on right side */}
-          {user && (
-            <Button variant="ghost" size="sm" asChild className="p-2">
-              <Link to="/dashboard">
-                <LayoutDashboard className="h-5 w-5" />
-              </Link>
-            </Button>
-          )}
-
-          {/* Admin Button - Only for admins */}
+        <div className="flex items-center gap-2">
+          {/* Admin Button - Only for logged in users */}
           {user && (
             <Button variant="outline" size="sm" asChild className="hidden md:flex">
               <Link to="/admin" className="flex items-center gap-1">
@@ -92,14 +94,32 @@ const Header = () => {
 
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  Welcome, {user.email}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  Log out
-                </Button>
-              </>
+              <div className="flex items-center gap-2">
+                {/* Dashboard Icon and User Avatar with Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          {getUserInitials(user.email || '')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="flex items-center">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <>
                 <Button variant="outline" size="sm" asChild>
