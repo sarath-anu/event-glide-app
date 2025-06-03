@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, Shield, LayoutDashboard, LogOut } from "lucide-react";
+import { Calendar, LayoutDashboard, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -54,48 +54,37 @@ const Header = () => {
         </div>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center space-x-6">
           <Link 
             to="/" 
-            className={`header-nav-link ${isActive("/") ? "active" : ""}`}
+            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
           >
             Home
           </Link>
           <Link 
             to="/events" 
-            className={`header-nav-link ${isActive("/events") ? "active" : ""}`}
+            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/events") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
           >
             Events
           </Link>
           <Link 
             to="/about" 
-            className={`header-nav-link ${isActive("/about") ? "active" : ""}`}
+            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/about") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
           >
             About
           </Link>
           <Link 
             to="/contact" 
-            className={`header-nav-link ${isActive("/contact") ? "active" : ""}`}
+            className={`header-nav-link px-3 py-2 rounded-md transition-colors ${isActive("/contact") ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
           >
             Contact
           </Link>
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* Admin Button - Only for logged in users */}
-          {user && (
-            <Button variant="outline" size="sm" asChild className="hidden md:flex">
-              <Link to="/admin" className="flex items-center gap-1">
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
-          )}
-
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2">
-                {/* Dashboard Icon and User Avatar with Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -111,6 +100,12 @@ const Header = () => {
                       <Link to="/dashboard" className="flex items-center">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center">
+                        <span className="mr-2">👤</span>
+                        <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSignOut}>
@@ -199,12 +194,12 @@ const Header = () => {
                 Dashboard
               </Link>
               <Link
-                to="/admin"
-                className="flex items-center gap-1 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
+                to="/profile"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium hover:bg-primary/10"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Shield className="h-4 w-4" />
-                Admin
+                <span>👤</span>
+                Profile
               </Link>
             </>
           )}

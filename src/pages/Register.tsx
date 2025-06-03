@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "lucide-react";
+import { Calendar, Camera } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
@@ -22,6 +23,8 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profileImage, setProfileImage] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const { signUp, user } = useAuth();
@@ -34,6 +37,14 @@ const Register = () => {
       navigate("/");
     }
   }, [user, navigate]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const imageUrl = URL.createObjectURL(file);
+      setProfileImage(imageUrl);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +97,10 @@ const Register = () => {
     }
   };
 
+  const getUserInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
@@ -105,6 +120,31 @@ const Register = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Profile Image Upload */}
+              <div className="flex justify-center mb-4">
+                <div className="relative">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={profileImage} />
+                    <AvatarFallback className="text-lg">
+                      {getUserInitials(fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <label
+                    htmlFor="profile-image"
+                    className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1.5 cursor-pointer hover:bg-primary/90 transition-colors"
+                  >
+                    <Camera className="h-3 w-3" />
+                  </label>
+                  <input
+                    id="profile-image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input 
@@ -115,6 +155,7 @@ const Register = () => {
                   required
                 />
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -126,6 +167,19 @@ const Register = () => {
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Mobile Number</Label>
+                <Input 
+                  id="phone"
+                  type="tel" 
+                  placeholder="+1 (555) 123-4567" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input 
