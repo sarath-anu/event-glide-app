@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -58,12 +59,10 @@ const EventDetailSupabase = () => {
       } else {
         // Fallback: copy URL to clipboard
         await navigator.clipboard.writeText(window.location.href);
-        // You could also show a toast here
         alert('Event link copied to clipboard!');
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      // Fallback: copy URL to clipboard
       try {
         await navigator.clipboard.writeText(window.location.href);
         alert('Event link copied to clipboard!');
@@ -101,7 +100,7 @@ const EventDetailSupabase = () => {
             The event you're looking for doesn't exist or has been removed.
           </p>
           <Button asChild>
-            <Link to="/">Back to Home</Link>
+            <Link to="/events">Back to Events</Link>
           </Button>
         </div>
       </div>
@@ -226,7 +225,7 @@ const EventDetailSupabase = () => {
                   ) : isBookingOpen ? (
                     <div className="space-y-2">
                       <Link to={`/events/${id}/register`}>
-                        <Button className="w-full">Register</Button>
+                        <Button className="w-full">Register Now</Button>
                       </Link>
                       <Link to={`/events/${id}/booking`}>
                         <Button variant="outline" className="w-full">Book Tickets</Button>

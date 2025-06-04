@@ -35,7 +35,7 @@ const EventCardSupabase = ({ event }: EventCardProps) => {
       </div>
       
       <CardHeader className="p-4 pb-2">
-        <Link to={`/event/${event.id}`} className="hover:underline">
+        <Link to={`/events/${event.id}`} className="hover:underline">
           <h3 className="text-lg font-semibold line-clamp-2">{event.name}</h3>
         </Link>
         <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
