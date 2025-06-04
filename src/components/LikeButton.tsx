@@ -3,34 +3,33 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { toggleEventLike, getUserEventLike } from "@/lib/supabase-data";
-import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface LikeButtonProps {
   eventId: string;
   likesCount: number;
-  className?: string;
 }
 
-const LikeButton = ({ eventId, likesCount, className }: LikeButtonProps) => {
-  const [liked, setLiked] = useState(false);
-  const [currentLikesCount, setCurrentLikesCount] = useState(likesCount);
-  const [loading, setLoading] = useState(false);
+const LikeButton = ({ eventId, likesCount }: LikeButtonProps) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentLikes, setCurrentLikes] = useState(likesCount);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const checkUserLike = async () => {
+    const checkIfLiked = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         try {
-          const userLiked = await getUserEventLike(eventId, user.id);
-          setLiked(userLiked);
+          const liked = await getUserEventLike(eventId, user.id);
+          setIsLiked(liked);
         } catch (error) {
-          console.error("Error checking user like:", error);
+          console.error("Error checking like status:", error);
         }
       }
     };
 
-    checkUserLike();
+    checkIfLiked();
   }, [eventId]);
 
   const handleLike = async () => {
@@ -45,25 +44,25 @@ const LikeButton = ({ eventId, likesCount, className }: LikeButtonProps) => {
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const isLiked = await toggleEventLike(eventId, user.id);
-      setLiked(isLiked);
-      setCurrentLikesCount(prev => isLiked ? prev + 1 : prev - 1);
+      const liked = await toggleEventLike(eventId, user.id);
+      setIsLiked(liked);
+      setCurrentLikes(prev => liked ? prev + 1 : Math.max(0, prev - 1));
       
       toast({
-        title: isLiked ? "Event Liked!" : "Event Unliked",
-        description: isLiked ? "Added to your liked events." : "Removed from your liked events.",
+        title: liked ? "Event Liked!" : "Event Unliked",
+        description: liked ? "Event added to your favorites." : "Event removed from favorites.",
       });
     } catch (error) {
       console.error("Error toggling like:", error);
       toast({
         title: "Error",
-        description: "Failed to update like status.",
+        description: "Failed to update like status. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -71,12 +70,18 @@ const LikeButton = ({ eventId, likesCount, className }: LikeButtonProps) => {
     <Button
       variant="outline"
       size="sm"
-      className={`${liked ? "text-red-500 border-red-500" : ""} ${className}`}
       onClick={handleLike}
-      disabled={loading}
+      disabled={isLoading}
+      className={`flex items-center gap-2 btn-secondary ${
+        isLiked ? 'bg-red-50 border-red-200 hover:bg-red-100' : ''
+      }`}
     >
-      <Heart className={`h-4 w-4 mr-2 ${liked ? "fill-red-500" : ""}`} />
-      {liked ? "Liked" : "Like"} ({currentLikesCount})
+      <Heart 
+        className={`h-4 w-4 ${
+          isLiked ? 'text-red-500 fill-red-500' : 'text-gray-500'
+        }`} 
+      />
+      <span className="text-gray-700">{currentLikes}</span>
     </Button>
   );
 };

@@ -25,6 +25,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
 import EventRedirect from "./components/EventRedirect";
+import EventSubmissionForm from "./components/EventSubmissionForm";
 
 const queryClient = new QueryClient();
 
@@ -40,10 +41,10 @@ function App() {
               <Route path="/" element={<IndexSupabase />} />
               <Route path="/events" element={<EventListingSupabase />} />
               <Route path="/events/:id" element={<EventDetailSupabase />} />
-              {/* Redirect old route pattern to new one */}
               <Route path="/event/:id" element={<EventRedirect />} />
               <Route path="/events/:id/register" element={<EventRegistrationSupabase />} />
               <Route path="/events/:id/booking" element={<EventBooking />} />
+              <Route path="/create-event" element={<EventSubmissionForm />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<EventDashboard />} />

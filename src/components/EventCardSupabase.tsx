@@ -29,14 +29,21 @@ const EventCardSupabase = ({ event }: EventCardProps) => {
           alt={event.name} 
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <Badge className={`category-badge-${event.category} absolute top-3 left-3`}>
-          {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
-        </Badge>
+        <div className="absolute top-3 left-3 flex gap-2">
+          <Badge className={`category-badge-${event.category}`}>
+            {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
+          </Badge>
+          {event.free_event && (
+            <Badge className="free-event-badge">
+              FREE
+            </Badge>
+          )}
+        </div>
       </div>
       
       <CardHeader className="p-4 pb-2">
         <Link to={`/events/${event.id}`} className="hover:underline">
-          <h3 className="text-lg font-semibold line-clamp-2">{event.name}</h3>
+          <h3 className="text-lg font-semibold line-clamp-2 text-gray-900">{event.name}</h3>
         </Link>
         <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
           <MapPin className="h-4 w-4" />
@@ -56,12 +63,12 @@ const EventCardSupabase = ({ event }: EventCardProps) => {
           </div>
         </div>
         
-        <p className="text-sm line-clamp-2">{event.short_description}</p>
+        <p className="text-sm line-clamp-2 text-gray-600">{event.short_description}</p>
         
         <div className="space-y-1 pt-2">
           <div className="flex items-center justify-between text-sm">
-            <span>Registration</span>
-            <span className="font-medium">
+            <span className="text-gray-600">Registration</span>
+            <span className="font-medium text-gray-900">
               {event.registered_count}/{event.total_capacity}
             </span>
           </div>
@@ -78,15 +85,15 @@ const EventCardSupabase = ({ event }: EventCardProps) => {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
             <Heart className="h-4 w-4 text-red-500" />
-            <span className="text-sm">{event.likes}</span>
+            <span className="text-sm text-gray-600">{event.likes || 0}</span>
           </div>
-          <div className="flex items-center justify-center rounded-full bg-[#F2FCE2] border border-[#8E9196]/30 p-1">
-            <Check className="h-3 w-3 text-[#7E69AB]" />
+          <div className="flex items-center justify-center rounded-full bg-blue-50 border border-blue-200 p-1">
+            <Check className="h-3 w-3 text-blue-600" />
           </div>
         </div>
         <div className="flex items-center gap-1">
           <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-          <span className="text-sm">{event.rating?.toFixed(1) || '0.0'}</span>
+          <span className="text-sm text-gray-600">{event.rating?.toFixed(1) || '0.0'}</span>
         </div>
       </CardFooter>
     </Card>
