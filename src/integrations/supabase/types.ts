@@ -200,7 +200,6 @@ export type Database = {
           event_date: string
           event_time: string
           featured: boolean | null
-          free_event: boolean | null
           id: string
           image_url: string | null
           likes: number | null
@@ -231,7 +230,6 @@ export type Database = {
           event_date: string
           event_time: string
           featured?: boolean | null
-          free_event?: boolean | null
           id?: string
           image_url?: string | null
           likes?: number | null
@@ -262,7 +260,6 @@ export type Database = {
           event_date?: string
           event_time?: string
           featured?: boolean | null
-          free_event?: boolean | null
           id?: string
           image_url?: string | null
           likes?: number | null
